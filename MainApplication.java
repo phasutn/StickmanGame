@@ -29,13 +29,14 @@ public class MainApplication extends JFrame implements KeyListener{
     private int[] map1 = {1,0,1,0,1}; 
 
     private int frameWidth = 1366, frameHeight  = 768;
+    private boolean GameRunning = true;
     private int score;
 
 
     public MainApplication(){
         setTitle("Project 3");
         setBounds(50, 50, frameWidth, frameHeight);
-        setResizable(false);
+        setResizable(true);
         setVisible(true);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE); 
         currentFrame = this;
@@ -58,12 +59,8 @@ public class MainApplication extends JFrame implements KeyListener{
         String path = "./resources/";
         backgroundImg  = new MyImageIcon(path + "testbg.jpg").resize(frameWidth, frameHeight);
         
-
         stickmanLabel = new StickManLabel(currentFrame);
 
-        grassfloorLabel = new GrassfloorLabel(currentFrame, map1,0);
-
-        
         currentLevel = new JTextField("0", 3);		
         currentLevel.setEditable(false);
 
@@ -84,7 +81,6 @@ public class MainApplication extends JFrame implements KeyListener{
         drawpane.setLayout(null);
         drawpane.setIcon(backgroundImg);
         drawpane.add(stickmanLabel);
-        drawpane.add(grassfloorLabel);
         contentpane.add(control, BorderLayout.NORTH);
         contentpane.add(drawpane, BorderLayout.CENTER); 
         setFloorThread(); 
@@ -108,22 +104,29 @@ public class MainApplication extends JFrame implements KeyListener{
     public void setFloorThread(){
             Thread floorThread= new Thread() 
             {
-                public void run()
-                {
+                public void run() {
+                    GrassfloorLabel grassfloorLabel = new GrassfloorLabel(currentFrame, map1, 0);
+                    drawpane.add(grassfloorLabel);
                     GrassfloorLabel grassfloorLabelnext = new GrassfloorLabel(currentFrame, map1, frameWidth);
                     drawpane.add(grassfloorLabelnext);
-                    while (true) {
-                        System.out.println(getName());
-                        System.out.println(grassfloorLabel.getX());
+                    while (GameRunning) {
+                        System.out.println("Floor 1: " + grassfloorLabel.getX());
+                        System.out.println("Floor 2: " + grassfloorLabelnext.getX());
                         grassfloorLabel.updateLocation();
                         grassfloorLabelnext.updateLocation();
-                        if (grassfloorLabel.getX() == -frameWidth) {
-                            drawpane.remove(grassfloorLabel);
-                            Thread.currentThread().interrupt();
-                            setFloorThread();
-                            break;
+                        if (grassfloorLabel.getX() < -frameWidth) {
+                            grassfloorLabel.setLocation(frameWidth);
                         }
-                    }     
+                        if (grassfloorLabelnext.getX() < -frameWidth){
+                            grassfloorLabelnext.setLocation(frameWidth);
+                        }
+                            // drawpane.remove(grassfloorLabel);
+                            // drawpane.remove(grassfloorLabelnext);
+                            // Thread.currentThread().interrupt();
+                            // setFloorThread();
+                            // break;
+                    }
+                    currentThread().interrupt();
                 } 
             }; 
         floorThread.start();
@@ -273,7 +276,7 @@ class GrassfloorLabel extends JLabel{
     private int curX = 0, curY = 0;
     private int sectionWidth; //width of each floor sections;
 
-    private int stageSpeed = 100;
+    private int stageSpeed = 10;
 
     public GrassfloorLabel(MainApplication pf, int[] Maplayout, int xPosition){
         System.out.println("floor created");
@@ -306,10 +309,19 @@ class GrassfloorLabel extends JLabel{
     }
 
     public void updateLocation(){
-        setLocation(getX() - 1, getY());
+        setLocation(getX() - 10, getY());
         repaint();
         try { Thread.sleep(stageSpeed); } 
         catch (InterruptedException e) { e.printStackTrace(); } 
+    }
+
+    public void setLocation(int xPosition){
+        setLocation(xPosition, getY());
+        //repaint();
+    }
+
+    public void changeMap(int[] map){
+        
     }
 
 }
