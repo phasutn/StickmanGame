@@ -49,12 +49,8 @@ public class MainApplication extends JFrame implements KeyListener{
         String path = "./resources/";
         backgroundImg  = new MyImageIcon(path + "testbg.jpg").resize(frameWidth, frameHeight);
         
-
         stickmanLabel = new StickManLabel(currentFrame);
 
-        grassfloorLabel = new GrassfloorLabel(currentFrame, map1,0);
-
-        
         currentLevel = new JTextField("0", 3);		
         currentLevel.setEditable(false);
 
@@ -66,7 +62,6 @@ public class MainApplication extends JFrame implements KeyListener{
         drawpane.setLayout(null);
         drawpane.setIcon(backgroundImg);
         drawpane.add(stickmanLabel);
-        drawpane.add(grassfloorLabel);
         contentpane.add(control, BorderLayout.NORTH);
         contentpane.add(drawpane, BorderLayout.CENTER); 
         setFloorThread(); 
@@ -90,22 +85,24 @@ public class MainApplication extends JFrame implements KeyListener{
     public void setFloorThread(){
             Thread floorThread= new Thread() 
             {
-                public void run()
-                {
-                    GrassfloorLabel grassfloorLabelnext = new GrassfloorLabel(currentFrame, map1, frameWidth);
+                public void run() {
+                    GrassfloorLabel grassfloorLabel = new GrassfloorLabel(currentFrame, map1, 0);
+                    drawpane.add(grassfloorLabel);
+                    GrassfloorLabel grassfloorLabelnext = new GrassfloorLabel(currentFrame, map1, frameWidth-30);
                     drawpane.add(grassfloorLabelnext);
                     while (true) {
                         System.out.println(getName());
                         System.out.println(grassfloorLabel.getX());
                         grassfloorLabel.updateLocation();
                         grassfloorLabelnext.updateLocation();
-                        if (grassfloorLabel.getX() == -frameWidth) {
+                        if (grassfloorLabel.getX() < -frameWidth) {
                             drawpane.remove(grassfloorLabel);
+                            drawpane.remove(grassfloorLabelnext);
                             Thread.currentThread().interrupt();
                             setFloorThread();
                             break;
                         }
-                    }     
+                    }
                 } 
             }; 
         floorThread.start();
@@ -237,7 +234,7 @@ class GrassfloorLabel extends JLabel{
     private int curX = 0, curY = 0;
     private int sectionWidth; //width of each floor sections;
 
-    private int stageSpeed = 100;
+    private int stageSpeed = 10;
 
     public GrassfloorLabel(MainApplication pf, int[] Maplayout, int xPosition){
         System.out.println("floor created");
@@ -270,7 +267,7 @@ class GrassfloorLabel extends JLabel{
     }
 
     public void updateLocation(){
-        setLocation(getX() - 1, getY());
+        setLocation(getX() - 10, getY());
         repaint();
         try { Thread.sleep(stageSpeed); } 
         catch (InterruptedException e) { e.printStackTrace(); } 
