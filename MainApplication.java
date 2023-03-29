@@ -7,10 +7,49 @@ import javax.swing.*;
 import javax.sound.sampled.*; 
 import java.util.ArrayList; 
 
-public class MainApplication extends JFrame implements KeyListener{
-
+public class MainApplication extends JFrame{
     private MainApplication currentFrame;
-    private ProjectLabel currentLabel;
+    private JPanel contentpane;
+    private JLabel drawpane;
+    private int frameWidth = 800, frameHeight  = 600;
+
+    public MainApplication(){
+        setTitle("Title Page");
+        setBounds(50, 50, frameWidth, frameHeight);
+        setResizable(true);
+        setVisible(true);
+        setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE); 
+        currentFrame = this;
+        
+        contentpane = (JPanel)getContentPane();
+        contentpane.setLayout(new BorderLayout());
+
+        AddComponents();
+        validate();
+    }
+
+    public void AddComponents(){
+        JButton startButton = new JButton("Start Game");
+        startButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e){
+                dispose();
+                new GameWindow();
+            }
+        });
+
+        JPanel menu = new JPanel();
+        menu.add(startButton);
+        contentpane.add(menu, BorderLayout.CENTER);
+    }
+
+    public static void main(String[] args) {
+        new MainApplication();
+    }
+}
+
+public class GameWindow extends JFrame implements KeyListener{
+
+    private GameWindow currentFrame;
 
     private JPanel contentpane;
     private JLabel drawpane;
@@ -30,11 +69,12 @@ public class MainApplication extends JFrame implements KeyListener{
 
     private int frameWidth = 1366, frameHeight  = 768;
     private boolean GameRunning = true;
+    private JTextField scoreText;
     private int score;
 
 
-    public MainApplication(){
-        setTitle("Project 3");
+    public GameWindow(){
+        setTitle("Stickman Game");
         setBounds(50, 50, frameWidth, frameHeight);
         setResizable(true);
         setVisible(true);
@@ -43,7 +83,7 @@ public class MainApplication extends JFrame implements KeyListener{
 
         addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e){
-              MainApplication frame = (MainApplication)e.getWindow();
+                GameWindow frame = (GameWindow)e.getWindow();
               JOptionPane.showMessageDialog(frame, ("Score = " + score), "Game Ended", JOptionPane.INFORMATION_MESSAGE);
             }
         });
@@ -52,6 +92,7 @@ public class MainApplication extends JFrame implements KeyListener{
         contentpane.setLayout(new BorderLayout());
         addKeyListener(this);
         AddComponents();
+        requestFocus();
     }
 
     public void AddComponents(){
@@ -68,15 +109,19 @@ public class MainApplication extends JFrame implements KeyListener{
         control.setBounds(0,0,1000,50);
         control.add(new JLabel("Diffuculty - "));
 
-        JButton itemButton = new JButton("Use item");
+        JButton itemButton = new JButton("Use item"); // Button to use speed boost
         itemButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e){
-                //Item command here
+                setSpeedBoostThread();
+                requestFocus();
             }
         });
 
+        scoreText = new JTextField("0", 5); // Text Field for score
+        scoreText.setEditable(false);
 
         control.add(itemButton);
+        control.add(scoreText);
         drawpane = new JLabel();
         drawpane.setLayout(null);
         drawpane.setIcon(backgroundImg);
@@ -85,7 +130,7 @@ public class MainApplication extends JFrame implements KeyListener{
         contentpane.add(drawpane, BorderLayout.CENTER); 
         setFloorThread(); 
         setStickmanThread();
-        setEnemySpawnThread();
+        setEnemySpawnThread(stickmanLabel);
         validate(); //To Update Components Added
     }
 
@@ -128,12 +173,12 @@ public class MainApplication extends JFrame implements KeyListener{
         floorThread.start();
     }
 
-    public void setEnemySpawnThread(){
+    public void setEnemySpawnThread(StickManLabel stickmanLabel){
         Thread enemySpawnThread = new Thread(){
             public void run(){
                 while(true){
-                    setEnemyThread();
-                    try { Thread.sleep(3000); }
+                    setEnemyThread(stickmanLabel);
+                    try { Thread.sleep(3000); } // Time between enemy spawn
                     catch(InterruptedException e) {}
                 }
             }
@@ -141,19 +186,45 @@ public class MainApplication extends JFrame implements KeyListener{
         enemySpawnThread.start();
     }
 
-    public void setEnemyThread(){
+    public void setEnemyThread(StickManLabel stickmanLabel){
         Thread enemyThread = new Thread(){
             public void run(){
-                EnemyLabel enemyLabel = new EnemyLabel(currentFrame, drawpane);
+                EnemyLabel enemyLabel = new EnemyLabel(currentFrame, drawpane, stickmanLabel);
                 drawpane.add(enemyLabel);
-                while(enemyLabel.isAlive()){
+                while(enemyLabel.isAlive() && enemyLabel.isAllAlive()){
                     enemyLabel.move();
                 }
+                Thread.currentThread().interrupt();
             }
         };
         enemyThread.start();
     }
 
+    public void setSpeedBoostThread(){ // During the duration, switch the speed of grass floor and enemy, also put the stickman into invincible state
+        Thread speedBoostThread = new Thread(){
+            public void run(){
+                int grassSpeed = 1, enemySpeed = 10, duration = 5000;
+
+                stickmanLabel.setInvincible(true);
+                grassSpeed = GrassfloorLabel.changeSpeed(grassSpeed);
+                enemySpeed = EnemyLabel.changeSpeed(enemySpeed);
+                try { Thread.sleep(duration); } 
+                catch (InterruptedException e) { e.printStackTrace(); }
+                grassSpeed = GrassfloorLabel.changeSpeed(grassSpeed);
+                enemySpeed = EnemyLabel.changeSpeed(enemySpeed);
+                stickmanLabel.setInvincible(false);
+
+                Thread.currentThread().interrupt();
+            }
+        };
+        speedBoostThread.start();
+    }
+
+    public synchronized void deductScore(int minusScore){
+        score -= minusScore;
+        scoreText.setText(Integer.toString(score));
+    }
+    
     @Override
     public void keyPressed(KeyEvent e){
         char key = e.getKeyChar();
@@ -178,15 +249,15 @@ public class MainApplication extends JFrame implements KeyListener{
     @Override
     public void keyTyped(KeyEvent e){}
 
-    public static void main(String[] args) {
-        new MainApplication();
-    }
+    // public static void main(String[] args) {
+    //     new GameWindow();
+    // }
 
 }
 
 class StickManLabel extends JLabel{
     private MyImageIcon StickMan;
-    private MainApplication parentFrame;
+    private GameWindow parentFrame;
     private int frameWidth, frameHeight;
     
     private int offsetX = 0;
@@ -205,7 +276,9 @@ class StickManLabel extends JLabel{
     private int floorHeight;
     private int gravity = 20;
 
-    public StickManLabel(MainApplication pf){
+    private boolean invincible = false;
+
+    public StickManLabel(GameWindow pf){
         parentFrame = pf;
         frameWidth = parentFrame.getWidth();
         frameHeight = parentFrame.getHeight();
@@ -258,12 +331,20 @@ class StickManLabel extends JLabel{
         }
         repaint();
     }
+
+    public boolean isInvincible(){
+        return invincible;
+    }
+
+    public void setInvincible(boolean status){
+        invincible = status;
+    }
 }
 
 class GrassfloorLabel extends JLabel{
     private MyImageIcon GrassImage;
     private MyImageIcon SpikeImage;
-    private MainApplication parentFrame;
+    private GameWindow parentFrame;
     private int[] layout;
 
     //String imagePath = "src/main/java/Project3/resources/Grassfloor.png"; //Maven
@@ -275,9 +356,9 @@ class GrassfloorLabel extends JLabel{
     private int curX = 0, curY = 0;
     private int sectionWidth; //width of each floor sections;
 
-    private int stageSpeed = 10;
+    private static int stageSpeed = 10;
 
-    public GrassfloorLabel(MainApplication pf, int[] Maplayout, int xPosition){
+    public GrassfloorLabel(GameWindow pf, int[] Maplayout, int xPosition){
         System.out.println("floor created");
         parentFrame = pf;
         width = parentFrame.getWidth() + 15;
@@ -319,6 +400,12 @@ class GrassfloorLabel extends JLabel{
         repaint();
     }
 
+    public static int changeSpeed(int spd){
+        int oldSpeed = stageSpeed;
+        stageSpeed = spd;
+        return oldSpeed;
+    }
+
     // public void changeMap(int[] map){
         
     // }
@@ -327,7 +414,7 @@ class GrassfloorLabel extends JLabel{
 
 class EnemyLabel extends JLabel{
     private MyImageIcon GrassImage;
-    private MainApplication parentFrame;
+    private GameWindow parentFrame;
     private JLabel drawpane;
 
     //String imagePath = "src/main/java/Project3/resources/enemy.png"; //Maven
@@ -336,14 +423,19 @@ class EnemyLabel extends JLabel{
     private int width = 100, height = 100;
     private int curX = 0, curY = 0;
     private boolean alive;
-    private int speed = 500;
+    private int pointDeductPerHit = 5;
+    private static boolean allAlive;
+    private static int speed = 1000;
+    private StickManLabel stickManLabel;
 
-    public EnemyLabel(MainApplication pf, JLabel dp){
+    public EnemyLabel(GameWindow pf, JLabel dp, StickManLabel stickman){
         parentFrame = pf;
         drawpane = dp;
         alive = true;
+        allAlive = true;
+        stickManLabel = stickman;
         
-        curY = (int)(Math.random() * 777) % (parentFrame.getHeight() /2 - 50);
+        curY = (int)(Math.random() * 7777) % ((parentFrame.getHeight() /2));
         curX = parentFrame.getWidth() + 100;
         GrassImage = new MyImageIcon(imagePath).resize(width, height);
         //setText("ENERMY");
@@ -361,8 +453,15 @@ class EnemyLabel extends JLabel{
         curX = curX - 50;
         if(curX < -50) alive = false;
         setLocation(curX, curY);
-        repaint();
 
+        if(stickManLabel.getBounds().intersects(this.getBounds())){
+            if( !stickManLabel.isInvincible() ){ // Check if the stickman is in invincible state or not
+                drawpane.remove(this);
+                parentFrame.deductScore(pointDeductPerHit);
+            }
+        }
+
+        repaint();
         try { Thread.sleep(speed); } 
         catch (InterruptedException e) { e.printStackTrace(); }
     }
@@ -370,10 +469,23 @@ class EnemyLabel extends JLabel{
     public boolean isAlive(){
         return alive;
     }
-}
-class ProjectLabel extends JLabel{
 
+    public static boolean isAllAlive(){
+        return allAlive;
+    }
+
+    public static void killAllAlive(){
+        allAlive = false;
+    }
+
+    public static int changeSpeed(int spd){
+        int oldSpeed = speed;
+        speed = spd;
+        return oldSpeed;
+    }
 }
+
+
 
 
 class MyImageIcon extends ImageIcon
