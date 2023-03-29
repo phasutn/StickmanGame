@@ -1,5 +1,5 @@
 
-package StickmanGame;
+package Project3;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -26,6 +26,7 @@ public class MainApplication extends JFrame implements KeyListener{
     private GrassfloorLabel grassfloorLabel;
 
     private int frameWidth = 1366, frameHeight  = 768;
+    private int score;
 
 
     public MainApplication(){
@@ -36,6 +37,13 @@ public class MainApplication extends JFrame implements KeyListener{
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE); 
         currentFrame = this;
 
+        addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent e){
+              MainApplication frame = (MainApplication)e.getWindow();
+              JOptionPane.showMessageDialog(frame, ("Score = " + score), "Game Ended", JOptionPane.INFORMATION_MESSAGE);
+            }
+        });
+        
         contentpane = (JPanel)getContentPane();
         contentpane.setLayout(new BorderLayout());
         addKeyListener(this);
@@ -57,8 +65,17 @@ public class MainApplication extends JFrame implements KeyListener{
 
         JPanel control  = new JPanel();
         control.setBounds(0,0,1000,50);
-        control.add(new JLabel("Level - "));
+        control.add(new JLabel("Diffuculty - "));
 
+        JButton itemButton = new JButton("Use item");
+        itemButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e){
+                //Item command here
+            }
+        });
+
+
+        control.add(itemButton);
         drawpane = new JLabel();
         drawpane.setLayout(null);
         drawpane.setIcon(backgroundImg);
@@ -77,7 +94,7 @@ public class MainApplication extends JFrame implements KeyListener{
                 while (true)
                 {
                     stickmanLabel.stickmanGravity();
-                }          
+                }
             } 
         }; 
         stickmanThread.start();
@@ -105,7 +122,6 @@ public class MainApplication extends JFrame implements KeyListener{
 
     public static void main(String[] args) {
         new MainApplication();
-        System.out.println("Hello");
     }
 
 }
@@ -155,7 +171,6 @@ class StickManLabel extends JLabel{
     }
 
     public void stickmanGravity(){
-        System.out.println("curr: " + getY() + " floor: " + floorHeight);
         if(getY() != floorHeight){
             if(getY() - gravity < floorHeight){
                 setLocation(getX(), getY() + gravity);
@@ -163,12 +178,11 @@ class StickManLabel extends JLabel{
             else{
                 setLocation(getX(), floorHeight);
             }
-            repaint();
             try { Thread.sleep(50); } 
             catch (InterruptedException e) { e.printStackTrace(); } 
         }
+        repaint();
     }
-
 }
 
 class GrassfloorLabel extends JLabel{
