@@ -129,6 +129,29 @@ public class MainApplication extends JFrame implements KeyListener{
         floorThread.start();
     }
 
+    public void setEnemySpawnThread(){
+        Thread enemySpawnThread = new Thread(){
+            public void run(){
+                while(true){
+                    EnemyLabel enemyLabel = new EnemyLabel(currentFrame);
+                    drawpane.add(enemyLabel);
+                    Thread.sleep(3000);
+                }
+            }
+        };
+        enemyThread.start();
+    }
+
+    public void setEnemyThread(){
+        Thread enemyThread = new Thread(){
+            public void run(){
+                while(isAlive()){
+                    enemyThread.move();
+                }
+            }
+        };
+        enemyThread.start();
+    }
 
     @Override
     public void keyPressed(KeyEvent e){
@@ -298,18 +321,35 @@ class EnemyLabel extends JLabel{
     //String imagePath = "src/main/java/Project3/resources/enemy.png"; //Maven
     String imagePath = "./resources/enemy.png";
     
-    //Size and Bounds
     private int width = 50, height = 50;
     private int curX = 0, curY = 0;
+    private boolean alive;
+    private int speed = 500;
 
     public EnemyLabel(MainApplication pf){
         parentFrame = pf;
+        alive = true;
 
         curY = (int)(Math.random() * 777) % (parentFrame.getHeight() /2 - 50);
         curX = parentFrame.getWidth() + 100;
         GrassImage = new MyImageIcon(imagePath).resize(width, height);
         setIcon(GrassImage);
         setBounds(curX, curY, width, height);
+        addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent e){
+                getParent().remove(this);
+            }
+        });
+    }
+
+    public void move(){
+        curX = curX - 50;
+        if(curX < -50) alive = false;
+        repaint();
+    }
+
+    public boolean isAlive(){
+        return alive;
     }
 }
 class ProjectLabel extends JLabel{
