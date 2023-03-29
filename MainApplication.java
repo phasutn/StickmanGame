@@ -111,8 +111,8 @@ public class MainApplication extends JFrame implements KeyListener{
                     GrassfloorLabel grassfloorLabelnext = new GrassfloorLabel(currentFrame, map1, frameWidth);
                     drawpane.add(grassfloorLabelnext);
                     while (GameRunning) {
-                        // System.out.println("Floor 1: " + grassfloorLabel.getX());
-                        // System.out.println("Floor 2: " + grassfloorLabelnext.getX());
+                        //System.out.println("Floor 1: " + grassfloorLabel.getX());
+                        //System.out.println("Floor 2: " + grassfloorLabelnext.getX());
                         grassfloorLabel.updateLocation();
                         grassfloorLabelnext.updateLocation();
                         if (grassfloorLabel.getX() < -frameWidth) {
@@ -121,11 +121,6 @@ public class MainApplication extends JFrame implements KeyListener{
                         if (grassfloorLabelnext.getX() < -frameWidth){
                             grassfloorLabelnext.setLocation(frameWidth);
                         }
-                            // drawpane.remove(grassfloorLabel);
-                            // drawpane.remove(grassfloorLabelnext);
-                            // Thread.currentThread().interrupt();
-                            // setFloorThread();
-                            // break;
                     }
                     currentThread().interrupt();
                 } 
@@ -257,7 +252,8 @@ class StickManLabel extends JLabel{
             else{
                 setLocation(getX(), floorHeight);
             }
-            try { Thread.sleep(gravity); } 
+            repaint();
+            try { Thread.sleep(50); } 
             catch (InterruptedException e) { e.printStackTrace(); } 
         }
         repaint();
@@ -284,7 +280,7 @@ class GrassfloorLabel extends JLabel{
     public GrassfloorLabel(MainApplication pf, int[] Maplayout, int xPosition){
         System.out.println("floor created");
         parentFrame = pf;
-        width = parentFrame.getWidth();
+        width = parentFrame.getWidth() + 15;
         height = parentFrame.getHeight();
         parentFrame = pf;
         layout = Maplayout;
@@ -320,12 +316,12 @@ class GrassfloorLabel extends JLabel{
 
     public void setLocation(int xPosition){
         setLocation(xPosition, getY());
-        //repaint();
+        repaint();
     }
 
-    public void changeMap(int[] map){
+    // public void changeMap(int[] map){
         
-    }
+    // }
 
 }
 
