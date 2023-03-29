@@ -4,7 +4,8 @@ package Project3;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
-import javax.sound.sampled.*;  
+import javax.sound.sampled.*; 
+import java.util.ArrayList; 
 
 public class MainApplication extends JFrame implements KeyListener{
 
@@ -112,6 +113,10 @@ public class MainApplication extends JFrame implements KeyListener{
         if(key == 'w' || key == 'W'){
             stickmanLabel.moveUp();
         }
+        if(key == 's' || key == 'S'){
+            stickmanLabel.moveDown();
+        }
+        
 
     }
     
@@ -130,16 +135,21 @@ class StickManLabel extends JLabel{
     private MyImageIcon StickMan;
     private MainApplication parentFrame;
     private int frameWidth, frameHeight;
+    
     private int offsetX = 0;
 
     //String imagePath = "src/main/java/Project3/resources/stickman.png"; //Maven
     String imagePath = "./resources/stickman.png";
     
-    //Size based on original image
+    //Stickman Properties
     private int width = 348/2, height  = 493/2;
     private int curX = 0, curY = 0;
-    private int floorHeight;
     private int speed = 20;
+    private int speedY = 50;
+    private int jumpHeight = 300;
+    
+    //Environment Properties
+    private int floorHeight;
     private int gravity = 20;
 
     public StickManLabel(MainApplication pf){
@@ -167,7 +177,18 @@ class StickManLabel extends JLabel{
     }
 
     public void moveUp(){
-        if(getY() == floorHeight) setLocation( getX(), getY() - 200);
+        if(getY() == floorHeight) setLocation( getX(), getY() - jumpHeight);
+    }
+
+    public void moveDown(){
+        if(getY() != floorHeight){
+            if(getY() - speedY < floorHeight){
+                setLocation(getX(), getY() + speedY);
+            }
+            else{
+                setLocation(getX(), floorHeight);
+            }
+        }
     }
 
     public void stickmanGravity(){
@@ -181,7 +202,6 @@ class StickManLabel extends JLabel{
             try { Thread.sleep(50); } 
             catch (InterruptedException e) { e.printStackTrace(); } 
         }
-        repaint();
     }
 }
 
