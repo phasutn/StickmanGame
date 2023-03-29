@@ -202,6 +202,7 @@ class StickManLabel extends JLabel{
             try { Thread.sleep(50); } 
             catch (InterruptedException e) { e.printStackTrace(); } 
         }
+        repaint();
     }
 }
 
@@ -243,6 +244,27 @@ class GrassfloorLabel extends JLabel{
     }
 }
 
+class EnemyLabel extends JLabel{
+    private MyImageIcon GrassImage;
+    private MainApplication parentFrame;
+
+    //String imagePath = "src/main/java/Project3/resources/enemy.png"; //Maven
+    String imagePath = "./resources/enemy.png";
+    
+    //Size and Bounds
+    private int width = 50, height = 50;
+    private int curX = 0, curY = 0;
+
+    public EnemyLabel(MainApplication pf){
+        parentFrame = pf;
+
+        curY = (int)(Math.random() * 777) % (parentFrame.getHeight() /2 - 50);
+        curX = parentFrame.getWidth() + 100;
+        GrassImage = new MyImageIcon(imagePath).resize(width, height);
+        setIcon(GrassImage);
+        setBounds(curX, curY, width, height);
+    }
+}
 class ProjectLabel extends JLabel{
 
 }
