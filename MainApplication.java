@@ -203,7 +203,7 @@ class GrassfloorLabel extends JLabel{
     private MainApplication parentFrame;
     private int[] layout;
 
-    //String imagePath = "src/main/java/Project3/resources/Grassfloor.png"; //Maven
+    //String imagePath = "src/main/java/Project3/resources/Grassfloor2.png"; //Maven
     String imagePath = "./resources/Grassfloor2.png";
     
     //Size and Bounds
