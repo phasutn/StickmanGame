@@ -11,6 +11,7 @@ public class MainApplication extends JFrame{
     private MainApplication currentFrame;
     private JPanel contentpane;
     private JLabel drawpane;
+    private JTextArea textArea;
     private int frameWidth = 800, frameHeight  = 600;
 
     public MainApplication(){
@@ -37,9 +38,42 @@ public class MainApplication extends JFrame{
             }
         });
 
-        JPanel menu = new JPanel();
-        menu.add(startButton);
-        contentpane.add(menu, BorderLayout.CENTER);
+        JComboBox<String> comboBox = new JComboBox<>();
+        comboBox.addItem("Option 1");
+        comboBox.addItem("Option 2");
+        comboBox.addItem("Option 3");
+        comboBox.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                String option = (String) comboBox.getSelectedItem();
+                if (option.equals("Option 1")) {
+                    textArea.setText("Option 1 selected");
+                } else if (option.equals("Option 2")) {
+                    textArea.setText("Option 2 selected");
+                } else if (option.equals("Option 3")) {
+                    textArea.setText("Option 3 selected");
+                }
+            }
+        });
+        comboBox.setPreferredSize(new Dimension(100, 20));
+
+        textArea = new JTextArea(10, 50);
+        textArea.setEditable(false);
+
+        JPanel topPanel = new JPanel();
+        JPanel midPanel = new JPanel();
+        JPanel bottomPanel = new JPanel();
+
+        topPanel.setBackground(new Color(255, 0, 0));
+        midPanel.setBackground(new Color(51, 153, 255));
+        bottomPanel.setBackground(new Color(255, 255, 0));
+
+        topPanel.add(startButton);
+        midPanel.add(comboBox);
+        bottomPanel.add(textArea);
+
+        contentpane.add(topPanel, BorderLayout.NORTH);
+        contentpane.add(midPanel, BorderLayout.CENTER);
+        contentpane.add(bottomPanel, BorderLayout.SOUTH);
     }
 
     public static void main(String[] args) {
