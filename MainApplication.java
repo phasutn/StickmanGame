@@ -1,5 +1,5 @@
 
-package Project3;
+package StickmanGame;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -52,72 +52,12 @@ public class MainApplication extends JFrame implements KeyListener{
         int[] map1 = {1,0,1,0,1}; 
         grassfloorLabel = new GrassfloorLabel(currentFrame, map1);
 
-        swimButton = new JButton("Swim");  
-        swimButton.addActionListener(new ActionListener(){
-            public void actionPerformed(ActionEvent e){
-
-            }
-        });
-        
-
-        stopButton = new JButton("Stop");
-        stopButton.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
-
-            }
-        });
-        
-
-        String[] speed = { "fast", "medium", "slow"};
-        combo = new JComboBox(speed);
-        combo.setSelectedIndex(1);
-        combo.addItemListener(new ItemListener() {
-            public void itemStateChanged(ItemEvent e) {
-
-            }
-        });
-
-        
-        tb = new JToggleButton[2];
-        bgroup = new ButtonGroup();      
-        tb[0] = new JRadioButton("Left");   tb[0].setName("Left");
-        tb[1] = new JRadioButton("Right");  tb[1].setName("Right"); 
-        tb[0].setSelected(true);
-
-        for (int i=0; i < 2; i++){
-            bgroup.add( tb[i] );
-            tb[i].addItemListener(new ItemListener() {
-            public void itemStateChanged(ItemEvent e) {
-
-                }
-            });
-        }
-    
-
-        moreButton = new JButton("More item");
-            moreButton.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    
-                }
-            });
-
         currentLevel = new JTextField("0", 3);		
         currentLevel.setEditable(false);
 
         JPanel control  = new JPanel();
         control.setBounds(0,0,1000,50);
         control.add(new JLabel("Level - "));
-        control.add(currentLevel);
-        control.add(swimButton);
-        control.add(stopButton);
-        control.add(combo);
-        control.add(tb[0]);
-        control.add(tb[1]);
-        control.add(new JLabel("                 "));
-        control.add(new JLabel("Item Control : "));
-        control.add(moreButton);
-        control.add(new JLabel("                 "));
-        control.add(new JLabel("Score : "));
 
         drawpane = new JLabel();
         drawpane.setLayout(null);
@@ -125,8 +65,22 @@ public class MainApplication extends JFrame implements KeyListener{
         drawpane.add(stickmanLabel);
         drawpane.add(grassfloorLabel);
         contentpane.add(control, BorderLayout.NORTH);
-        contentpane.add(drawpane, BorderLayout.CENTER);   
+        contentpane.add(drawpane, BorderLayout.CENTER);  
+        setStickmanThread(); 
         validate(); //To Update Components Added
+    }
+
+    public void setStickmanThread(){
+        Thread stickmanThread = new Thread() {
+            public void run()
+            {
+                while (true)
+                {
+                    stickmanLabel.stickmanGravity();
+                }          
+            } 
+        }; 
+        stickmanThread.start();
     }
 
     @Override
@@ -168,14 +122,18 @@ class StickManLabel extends JLabel{
     //Size based on original image
     private int width = 348/2, height  = 493/2;
     private int curX = 0, curY = 0;
-    private int speed = 200;
+    private int floorHeight;
+    private int speed = 20;
+    private int gravity = 20;
 
     public StickManLabel(MainApplication pf){
         parentFrame = pf;
         frameWidth = parentFrame.getWidth();
         frameHeight = parentFrame.getHeight();
+        floorHeight = frameHeight / 2 - 50;
         curX = frameWidth / 20;
-        curY = frameHeight / 2 - 50;
+        curY = floorHeight;
+        
 
         StickMan = new MyImageIcon(imagePath).resize(width, height);
         setIcon(StickMan);
@@ -184,18 +142,33 @@ class StickManLabel extends JLabel{
 
     public void moveLeft(){
         if(getX() - speed > 0) setLocation( getX() - speed, getY());
-        else setLocation( frameWidth - offsetX, getY());
+        else setLocation( frameWidth, getY());
     }
     
     public void moveRight(){
-        if(getX() + speed < frameWidth - offsetX) setLocation( getX() + speed, getY());
+        if(getX() + speed < frameWidth) setLocation( getX() + speed, getY());
         else setLocation( 0, getY());
     }
 
     public void moveUp(){
-        if(getX() + speed < frameWidth - offsetX) setLocation( getX() + speed, getY());
-        else setLocation( 0, getY());
+        if(getY() == floorHeight) setLocation( getX(), getY() - 200);
     }
+
+    public void stickmanGravity(){
+        System.out.println("curr: " + getY() + " floor: " + floorHeight);
+        if(getY() != floorHeight){
+            if(getY() - gravity < floorHeight){
+                setLocation(getX(), getY() + gravity);
+            }
+            else{
+                setLocation(getX(), floorHeight);
+            }
+            repaint();
+            try { Thread.sleep(50); } 
+            catch (InterruptedException e) { e.printStackTrace(); } 
+        }
+    }
+
 }
 
 class GrassfloorLabel extends JLabel{
@@ -203,8 +176,8 @@ class GrassfloorLabel extends JLabel{
     private MainApplication parentFrame;
     private int[] layout;
 
-    //String imagePath = "src/main/java/Project3/resources/Grassfloor2.png"; //Maven
-    String imagePath = "./resources/Grassfloor2.png";
+    //String imagePath = "src/main/java/Project3/resources/Grassfloor.png"; //Maven
+    String imagePath = "./resources/Grassfloor.png";
     
     //Size and Bounds
     private int width, height;
