@@ -102,11 +102,6 @@ public class MainApplication extends JFrame implements KeyListener{
                         if (grassfloorLabelnext.getX() < -frameWidth){
                             grassfloorLabelnext.setLocation(frameWidth);
                         }
-                            // drawpane.remove(grassfloorLabel);
-                            // drawpane.remove(grassfloorLabelnext);
-                            // Thread.currentThread().interrupt();
-                            // setFloorThread();
-                            // break;
                     }
                     currentThread().interrupt();
                 } 
@@ -245,7 +240,7 @@ class GrassfloorLabel extends JLabel{
     public GrassfloorLabel(MainApplication pf, int[] Maplayout, int xPosition){
         System.out.println("floor created");
         parentFrame = pf;
-        width = parentFrame.getWidth();
+        width = parentFrame.getWidth() + 15;
         height = parentFrame.getHeight();
         parentFrame = pf;
         layout = Maplayout;
@@ -281,7 +276,7 @@ class GrassfloorLabel extends JLabel{
 
     public void setLocation(int xPosition){
         setLocation(xPosition, getY());
-        //repaint();
+        repaint();
     }
 
     public void changeMap(int[] map){
