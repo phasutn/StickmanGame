@@ -92,8 +92,8 @@ public class MainApplication extends JFrame implements KeyListener{
                     GrassfloorLabel grassfloorLabelnext = new GrassfloorLabel(currentFrame, map1, frameWidth);
                     drawpane.add(grassfloorLabelnext);
                     while (GameRunning) {
-                        System.out.println("Floor 1: " + grassfloorLabel.getX());
-                        System.out.println("Floor 2: " + grassfloorLabelnext.getX());
+                        //System.out.println("Floor 1: " + grassfloorLabel.getX());
+                        //System.out.println("Floor 2: " + grassfloorLabelnext.getX());
                         grassfloorLabel.updateLocation();
                         grassfloorLabelnext.updateLocation();
                         if (grassfloorLabel.getX() < -frameWidth) {
@@ -203,14 +203,14 @@ class StickManLabel extends JLabel{
 
     public void stickmanGravity(){
         if(getY() != floorHeight){
-            if(getY() - gravity < floorHeight){
+            if(getY() - 1 < floorHeight){
                 setLocation(getX(), getY() + gravity);
             }
             else{
                 setLocation(getX(), floorHeight);
             }
             repaint();
-            try { Thread.sleep(50); } 
+            try { Thread.sleep(gravity); } 
             catch (InterruptedException e) { e.printStackTrace(); } 
         }
         else{
@@ -279,9 +279,9 @@ class GrassfloorLabel extends JLabel{
         repaint();
     }
 
-    public void changeMap(int[] map){
+    // public void changeMap(int[] map){
         
-    }
+    // }
 
 }
 
