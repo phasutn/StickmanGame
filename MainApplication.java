@@ -60,7 +60,7 @@ public class MainApplication extends JFrame implements KeyListener{
         backgroundImg  = new MyImageIcon(path + "testbg.jpg").resize(frameWidth, frameHeight);
         
         stickmanLabel = new StickManLabel(currentFrame);
-
+        stickmanLabel.setBorder(BorderFactory.createLineBorder(Color.RED));
         currentLevel = new JTextField("0", 3);		
         currentLevel.setEditable(false);
 
@@ -121,8 +121,12 @@ public class MainApplication extends JFrame implements KeyListener{
                         if (grassfloorLabelnext.getX() < -frameWidth){
                             grassfloorLabelnext.setLocation(frameWidth);
                         }
+                        if(grassfloorLabel.intersectsSpike(stickmanLabel) ||
+                           grassfloorLabelnext.intersectsSpike(stickmanLabel)){
+                            System.out.println("Hit");
+                        }
                     }
-                    currentThread().interrupt();
+                    Thread.currentThread().interrupt();
                 } 
             }; 
         floorThread.start();
@@ -244,6 +248,10 @@ class StickManLabel extends JLabel{
         }
     }
 
+    public int getFloor(){
+        return floorHeight;
+    }
+
     public void stickmanGravity(){
         if(getY() != floorHeight){
             if(getY() - 1 < floorHeight){
@@ -275,6 +283,11 @@ class GrassfloorLabel extends JLabel{
     private int curX = 0, curY = 0;
     private int sectionWidth; //width of each floor sections;
 
+    //Spike HitBoxes
+    private ArrayList<JLabel> spikeLabels = new ArrayList<>();
+    private ArrayList<Integer> spikeOriginalXPositions = new ArrayList<>();
+
+    //Floor Environment
     private int stageSpeed = 10;
 
     public GrassfloorLabel(MainApplication pf, int[] Maplayout, int xPosition){
@@ -300,15 +313,30 @@ class GrassfloorLabel extends JLabel{
             if(layout[i] == 0){
                 SpikeImage = new MyImageIcon(spikePath).resize(sectionWidth, height);
                 JLabel sectionLabel = new JLabel(SpikeImage);
-                sectionLabel.setBounds(curX, curY - 20, sectionWidth, height);
+                sectionLabel.setBounds(curX, curY, sectionWidth, height);
+                //sectionLabel.setBounds(curX + sectionWidth/4, curY, sectionWidth/3, height);
+                sectionLabel.setBorder(BorderFactory.createLineBorder(Color.BLUE));
+                
+                //this label is for hitbox and cannot be seen on the frame
+                JLabel spikeLabel = new JLabel();
+                spikeLabel.setBounds(curX + sectionWidth/4, curY, sectionWidth/3, height);
+                spikeOriginalXPositions.add(spikeLabel.getX());
+                spikeLabels.add(spikeLabel);
+                
+                System.out.println(spikeLabel.getBounds());
+
                 add(sectionLabel);
             }
+
             curX += sectionWidth;
         }
     }
 
     public void updateLocation(){
         setLocation(getX() - 10, getY());
+        for(JLabel spikeLabel : spikeLabels){
+            spikeLabel.setLocation(spikeLabel.getX() - 10, getY());
+        }
         repaint();
         try { Thread.sleep(stageSpeed); } 
         catch (InterruptedException e) { e.printStackTrace(); } 
@@ -316,13 +344,29 @@ class GrassfloorLabel extends JLabel{
 
     public void setLocation(int xPosition){
         setLocation(xPosition, getY());
+        for (int i = 0; i < spikeLabels.size(); i++) {
+            
+            //Adjust the location to match its original location
+            JLabel spikeLabel = spikeLabels.get(i);
+            int originalX = spikeOriginalXPositions.get(i);
+            spikeLabel.setLocation(originalX + getX(), getY()); 
+            System.out.println("AAAAAAAA" + spikeLabel.getBounds());
+        }
         repaint();
     }
 
-    // public void changeMap(int[] map){
-        
-    // }
+    public boolean intersectsSpike(StickManLabel Player) {
+        Rectangle playerBounds = Player.getBounds();
 
+        for(JLabel spikeLabel : spikeLabels){
+            //Intersects and is on the ground
+            if(playerBounds.intersects(spikeLabel.getBounds()) && 
+               playerBounds.getY() == Player.getFloor()){
+                return true;
+            }
+        }
+        return false;
+    }
 }
 
 class EnemyLabel extends JLabel{
