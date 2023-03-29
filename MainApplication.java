@@ -83,6 +83,19 @@ public class MainApplication extends JFrame implements KeyListener{
         stickmanThread.start();
     }
 
+    public void setFloorThread(){
+        Thread floorThread= new Thread() {
+            public void run()
+            {
+                while (true)
+                {
+                    
+                }          
+            } 
+        }; 
+        floorThread.start();
+    }
+
     @Override
     public void keyPressed(KeyEvent e){
         char key = e.getKeyChar();
@@ -195,11 +208,13 @@ class StickManLabel extends JLabel{
 
 class GrassfloorLabel extends JLabel{
     private MyImageIcon GrassImage;
+    private MyImageIcon SpikeImage;
     private MainApplication parentFrame;
     private int[] layout;
 
     //String imagePath = "src/main/java/Project3/resources/Grassfloor.png"; //Maven
-    String imagePath = "./resources/Grassfloor.png";
+    String grassPath = "./resources/Grassfloor.png";
+    String spikePath = "./resources/Spikefloor.png";
     
     //Size and Bounds
     private int width, height;
@@ -220,9 +235,16 @@ class GrassfloorLabel extends JLabel{
             //First, we create a temp. JLabel(sectionLabel) to hold a section of the floor
             //then we set its image to the floor, adjust its size and add it to the main label
             if(layout[i] == 1){
-                GrassImage = new MyImageIcon(imagePath).resize(sectionWidth, height);
+                GrassImage = new MyImageIcon(grassPath).resize(sectionWidth, height);
                 JLabel sectionLabel = new JLabel(GrassImage);
                 sectionLabel.setBounds(curX, curY, sectionWidth, height);
+                add(sectionLabel);
+                System.out.println("New Floor");
+            }
+            if(layout[i] == 0){
+                SpikeImage = new MyImageIcon(spikePath).resize(sectionWidth, height);
+                JLabel sectionLabel = new JLabel(SpikeImage);
+                sectionLabel.setBounds(curX, curY - 20, sectionWidth, height);
                 add(sectionLabel);
                 System.out.println("New Floor");
             }
