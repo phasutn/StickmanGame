@@ -84,7 +84,8 @@ public class MainApplication extends JFrame implements KeyListener{
         contentpane.add(control, BorderLayout.NORTH);
         contentpane.add(drawpane, BorderLayout.CENTER); 
         setFloorThread(); 
-        setStickmanThread(); 
+        setStickmanThread();
+        setEnemySpawnThread();
         validate(); //To Update Components Added
     }
 
@@ -110,8 +111,8 @@ public class MainApplication extends JFrame implements KeyListener{
                     GrassfloorLabel grassfloorLabelnext = new GrassfloorLabel(currentFrame, map1, frameWidth);
                     drawpane.add(grassfloorLabelnext);
                     while (GameRunning) {
-                        System.out.println("Floor 1: " + grassfloorLabel.getX());
-                        System.out.println("Floor 2: " + grassfloorLabelnext.getX());
+                        // System.out.println("Floor 1: " + grassfloorLabel.getX());
+                        // System.out.println("Floor 2: " + grassfloorLabelnext.getX());
                         grassfloorLabel.updateLocation();
                         grassfloorLabelnext.updateLocation();
                         if (grassfloorLabel.getX() < -frameWidth) {
@@ -136,20 +137,22 @@ public class MainApplication extends JFrame implements KeyListener{
         Thread enemySpawnThread = new Thread(){
             public void run(){
                 while(true){
-                    EnemyLabel enemyLabel = new EnemyLabel(currentFrame);
-                    drawpane.add(enemyLabel);
-                    Thread.sleep(3000);
+                    setEnemyThread();
+                    try { Thread.sleep(3000); }
+                    catch(InterruptedException e) {}
                 }
             }
         };
-        enemyThread.start();
+        enemySpawnThread.start();
     }
 
     public void setEnemyThread(){
         Thread enemyThread = new Thread(){
             public void run(){
-                while(isAlive()){
-                    enemyThread.move();
+                EnemyLabel enemyLabel = new EnemyLabel(currentFrame, drawpane);
+                drawpane.add(enemyLabel);
+                while(enemyLabel.isAlive()){
+                    enemyLabel.move();
                 }
             }
         };
@@ -248,13 +251,13 @@ class StickManLabel extends JLabel{
 
     public void stickmanGravity(){
         if(getY() != floorHeight){
-            if(getY() - gravity < floorHeight){
+            if(getY() - 1 < floorHeight){
                 setLocation(getX(), getY() + gravity);
             }
             else{
                 setLocation(getX(), floorHeight);
             }
-            try { Thread.sleep(50); } 
+            try { Thread.sleep(gravity); } 
             catch (InterruptedException e) { e.printStackTrace(); } 
         }
         repaint();
@@ -329,27 +332,31 @@ class GrassfloorLabel extends JLabel{
 class EnemyLabel extends JLabel{
     private MyImageIcon GrassImage;
     private MainApplication parentFrame;
+    private JLabel drawpane;
 
     //String imagePath = "src/main/java/Project3/resources/enemy.png"; //Maven
     String imagePath = "./resources/enemy.png";
     
-    private int width = 50, height = 50;
+    private int width = 100, height = 100;
     private int curX = 0, curY = 0;
     private boolean alive;
     private int speed = 500;
 
-    public EnemyLabel(MainApplication pf){
+    public EnemyLabel(MainApplication pf, JLabel dp){
         parentFrame = pf;
+        drawpane = dp;
         alive = true;
-
+        
         curY = (int)(Math.random() * 777) % (parentFrame.getHeight() /2 - 50);
         curX = parentFrame.getWidth() + 100;
         GrassImage = new MyImageIcon(imagePath).resize(width, height);
+        //setText("ENERMY");
         setIcon(GrassImage);
         setBounds(curX, curY, width, height);
         addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e){
-                getParent().remove(this);
+                drawpane.remove((EnemyLabel)e.getSource());
+                Thread.currentThread().interrupt();
             }
         });
     }
@@ -357,7 +364,11 @@ class EnemyLabel extends JLabel{
     public void move(){
         curX = curX - 50;
         if(curX < -50) alive = false;
+        setLocation(curX, curY);
         repaint();
+
+        try { Thread.sleep(speed); } 
+        catch (InterruptedException e) { e.printStackTrace(); }
     }
 
     public boolean isAlive(){
