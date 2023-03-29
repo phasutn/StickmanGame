@@ -6,7 +6,7 @@ import java.awt.event.*;
 import javax.swing.*;
 import javax.sound.sampled.*;  
 
-public class MainApplication extends JFrame{
+public class MainApplication extends JFrame implements KeyListener{
 
     private MainApplication currentFrame;
     private ProjectLabel currentLabel;
@@ -25,7 +25,7 @@ public class MainApplication extends JFrame{
     private StickManLabel stickmanLabel;
     private GrassfloorLabel grassfloorLabel;
 
-    private int frameWidth = 1920, frameHeight  = 1080;
+    private int frameWidth = 1366, frameHeight  = 768;
 
 
     public MainApplication(){
@@ -34,11 +34,11 @@ public class MainApplication extends JFrame{
         setResizable(false);
         setVisible(true);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE); 
-        setExtendedState(JFrame.MAXIMIZED_BOTH); //FullScreen
         currentFrame = this;
 
         contentpane = (JPanel)getContentPane();
         contentpane.setLayout(new BorderLayout());
+        addKeyListener(this);
         AddComponents();
     }
 
@@ -49,7 +49,7 @@ public class MainApplication extends JFrame{
         
 
         stickmanLabel = new StickManLabel(currentFrame);
-        int[] map1 = {1,0,1,0,1,1,1,0}; 
+        int[] map1 = {1,0,1,0,1}; 
         grassfloorLabel = new GrassfloorLabel(currentFrame, map1);
 
         swimButton = new JButton("Swim");  
@@ -129,6 +129,26 @@ public class MainApplication extends JFrame{
         validate(); //To Update Components Added
     }
 
+    @Override
+    public void keyPressed(KeyEvent e){
+        char key = e.getKeyChar();
+        if(key == 'a' || key == 'A'){
+            stickmanLabel.moveLeft();
+        }
+        if(key == 'd' || key == 'D'){
+            stickmanLabel.moveRight();
+        }
+        if(key == 'w' || key == 'W'){
+            stickmanLabel.moveUp();
+        }
+
+    }
+    
+    @Override
+    public void keyReleased(KeyEvent e){}
+    @Override
+    public void keyTyped(KeyEvent e){}
+
     public static void main(String[] args) {
         new MainApplication();
         System.out.println("Hello");
@@ -139,7 +159,7 @@ public class MainApplication extends JFrame{
 class StickManLabel extends JLabel{
     private MyImageIcon StickMan;
     private MainApplication parentFrame;
-    private int frameWidth;
+    private int frameWidth, frameHeight;
     private int offsetX = 0;
 
     //String imagePath = "src/main/java/Project3/resources/stickman.png"; //Maven
@@ -147,13 +167,16 @@ class StickManLabel extends JLabel{
     
     //Size based on original image
     private int width = 348/2, height  = 493/2;
-    private int curX = 100, curY = 520;
+    private int curX = 0, curY = 0;
     private int speed = 200;
 
     public StickManLabel(MainApplication pf){
         parentFrame = pf;
         frameWidth = parentFrame.getWidth();
-        
+        frameHeight = parentFrame.getHeight();
+        curX = frameWidth / 20;
+        curY = frameHeight / 2 - 50;
+
         StickMan = new MyImageIcon(imagePath).resize(width, height);
         setIcon(StickMan);
         setBounds(curX, curY, width, height);
@@ -169,6 +192,10 @@ class StickManLabel extends JLabel{
         else setLocation( 0, getY());
     }
 
+    public void moveUp(){
+        if(getX() + speed < frameWidth - offsetX) setLocation( getX() + speed, getY());
+        else setLocation( 0, getY());
+    }
 }
 
 class GrassfloorLabel extends JLabel{
@@ -179,12 +206,15 @@ class GrassfloorLabel extends JLabel{
     //String imagePath = "src/main/java/Project3/resources/Grassfloor.png"; //Maven
     String imagePath = "./resources/Grassfloor2.png";
     
-    //Size based on original image
-    private int width = 1920, height  = 1080;
+    //Size and Bounds
+    private int width, height;
     private int curX = 0, curY = 0;
     private int sectionWidth; //width of each floor sections;
 
     public GrassfloorLabel(MainApplication pf, int[] Maplayout){
+        parentFrame = pf;
+        width = parentFrame.getWidth();
+        height = parentFrame.getHeight();
         parentFrame = pf;
         layout = Maplayout;
         sectionWidth = width / layout.length;
@@ -195,7 +225,7 @@ class GrassfloorLabel extends JLabel{
             //First, we create a temp. JLabel(sectionLabel) to hold a section of the floor
             //then we set its image to the floor, adjust its size and add it to the main label
             if(layout[i] == 1){
-                GrassImage = new MyImageIcon(imagePath);//.resize(sectionWidth, height);
+                GrassImage = new MyImageIcon(imagePath).resize(sectionWidth, height);
                 JLabel sectionLabel = new JLabel(GrassImage);
                 sectionLabel.setBounds(curX, curY, sectionWidth, height);
                 add(sectionLabel);
