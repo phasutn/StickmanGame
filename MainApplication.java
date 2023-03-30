@@ -20,7 +20,8 @@ public class MainApplication extends JFrame{
 
     public MainApplication(){
         setTitle("Title Page");
-        setBounds(50, 50, frameWidth, frameHeight);
+        setLocationRelativeTo(null);
+        setBounds(500, 250, frameWidth, frameHeight);
         setResizable(false);
         setVisible(true);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE); 
@@ -45,6 +46,7 @@ public class MainApplication extends JFrame{
         startButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e){
                 new GameWindow((MainApplication)SwingUtilities.getWindowAncestor((Component)e.getSource()), hatOptions[hatSelected]);
+                dispose();
             }
         });
 
@@ -91,21 +93,23 @@ class GameWindow extends JFrame implements KeyListener{
     private StickManLabel stickmanLabel;
     private GrassfloorLabel grassfloorLabel;
     private JButton speedButton;
+    private JTextField scoreText;
 
     private int frameWidth = 1366, frameHeight  = 768;
     private boolean GameRunning = true;
-    private JTextField scoreText;
+    private boolean boosting = false;
     private String hatFileName;
     private int score;
+    private int enemyRequired = 5;
     private int enemyCount;
 
 
     public GameWindow(MainApplication pf, String hatName){
         setTitle("Stickman Game");
-        setBounds(50, 50, frameWidth, frameHeight);
+        setBounds(500, 250, frameWidth, frameHeight);
         setResizable(true);
         setVisible(true);
-        setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE); 
+        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         currentFrame = this;
         parentFrame = pf;
         hatFileName = hatName;
@@ -113,6 +117,7 @@ class GameWindow extends JFrame implements KeyListener{
         addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e){
                 GameRunning = false;
+                EnemyLabel.killAllAlive();
                 themeSound.stop();
             }
         });
@@ -156,24 +161,24 @@ class GameWindow extends JFrame implements KeyListener{
         
         JRadioButton superEasyBtn = new JRadioButton("Super Slow");
         superEasyBtn.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e){
-            setSpeed(300, 20, 300);
+            if(!boosting) setSpeed(300, 20, 300);
         }});
         JRadioButton easyBtn = new JRadioButton("Slow");
         easyBtn.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e){
-            setSpeed(200, 15, 250);
+            if(!boosting) setSpeed(200, 15, 250);
         }});
         JRadioButton mediumBtn = new JRadioButton("Medium");
         mediumBtn.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e){
-            setSpeed(120, 10, 200);
+            if(!boosting) setSpeed(120, 10, 200);
         }});
         mediumBtn.setSelected(true);
         JRadioButton hardBtn = new JRadioButton("Fast");
         hardBtn.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e){
-            setSpeed(80, 8, 100);
+            if(!boosting) setSpeed(80, 8, 100);
         }});
         JRadioButton superHardBtn = new JRadioButton("LIGHTSPEED");
         superHardBtn.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e){
-            setSpeed(1, 3, 50);
+            if(!boosting) setSpeed(1, 3, 50);
         }});
 
         ButtonGroup diffBtnGroup = new ButtonGroup();
@@ -191,7 +196,7 @@ class GameWindow extends JFrame implements KeyListener{
         speedButton = new JButton("Boost Not Ready"); // Button to use speed boost
         speedButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e){
-                if(enemyCount >= 5){
+                if(enemyCount >= enemyRequired){
                     enemyCount = 0;
                     speedButton.setText("Boost Not Ready");
                     enemyCount = 0;
@@ -232,11 +237,12 @@ class GameWindow extends JFrame implements KeyListener{
 
     public synchronized void plusEnemy(){
         enemyCount++;
-        if(enemyCount >= 5) speedButton.setText("Boost Ready");
+        if(enemyCount >= enemyRequired) speedButton.setText("Boost Ready");
+        else if(enemyCount > 0) speedButton.setText(enemyCount + "/" + enemyRequired);
     }
 
     public synchronized void deductScore(int minusScore){
-        System.out.println(minusScore);
+        //System.out.println(minusScore);
         score -= minusScore;
         scoreText.setText("Score: " + Integer.toString(score));
     }
@@ -302,7 +308,7 @@ class GameWindow extends JFrame implements KeyListener{
                             if(!stickmanLabel.isInvincible()){
                                 hurtSound.playOnce();
                                 setInvincibleFrame();
-                                deductScore(300);
+                                deductScore(500);
                             }
                         }
                     }
@@ -347,12 +353,14 @@ class GameWindow extends JFrame implements KeyListener{
                 int duration = ((int)(Math.random() * 222) % (3000)) + 2000; // Random spawn interval from 2-5 seconds
 
                 if(!stickmanLabel.isInvincible()) stickmanLabel.setInvincible(true);
+                boosting = true;
                 grassSpeed = GrassfloorLabel.changeSpeed(grassSpeed);
                 enemySpeed = EnemyLabel.changeSpeed(enemySpeed);
                 try { Thread.sleep(duration); } 
                 catch (InterruptedException e) { e.printStackTrace(); }
                 grassSpeed = GrassfloorLabel.changeSpeed(grassSpeed);
                 enemySpeed = EnemyLabel.changeSpeed(enemySpeed);
+                boosting = false;
                 setInvincibleFrame();
 
                 Thread.currentThread().interrupt();
@@ -671,7 +679,7 @@ class EnemyLabel extends JLabel{
     private boolean alive;
     private static boolean allAlive;
     private static int speed = 100;
-    private int damage = 500;
+    private int damage = 700;
     private StickManLabel stickManLabel;
     private MySoundEffect hurtSound, monsterSound;
     private String hurtSoundPath = "./resources/sounds/hurtSound.wav";
@@ -756,7 +764,7 @@ class EndWindow extends JFrame{
 
     public EndWindow(MainApplication pf, int score){
         setTitle("End Page");
-        setBounds(50, 50, frameWidth, frameHeight);
+        setBounds(500, 250 , frameWidth, frameHeight);
         setResizable(false);
         setVisible(true);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE); 
