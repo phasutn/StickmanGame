@@ -14,7 +14,7 @@ public class MainApplication extends JFrame{
     private JTextArea textArea;
     private MyImageIcon backgroundImg;
     private int frameWidth = 800, frameHeight  = 600;
-    private String hatOptions[] = {"stickman"};
+    private String hatOptions[] = {"stickman", "sombrero"};
     private int hatSelected = 0;
 
     
@@ -219,11 +219,12 @@ public class GameWindow extends JFrame implements KeyListener{
     public void setEnemySpawnThread(StickManLabel stickmanLabel){
         Thread enemySpawnThread = new Thread(){
             public void run(){
-                while(true){
-                    setEnemyThread(stickmanLabel);
-                    try { Thread.sleep(3000); } // Time between enemy spawn
-                    catch(InterruptedException e) {}
-                }
+                // while(true){
+                //     setEnemyThread(stickmanLabel);
+                //     try { Thread.sleep(3000); } // Time between enemy spawn
+                //     catch(InterruptedException e) {}
+                // }
+                Thread.currentThread().interrupt();
             }
         };
         enemySpawnThread.start();
@@ -328,6 +329,7 @@ class StickManLabel extends JLabel{
 
     //String imagePath = "src/main/java/Project3/resources/stickman.png"; //Maven
     String imagePath = "./resources/stickman.png";
+    String hatPath = "./resources/";
     
     //Stickman Properties
     private int width = 348/2, height  = 493/2;
@@ -343,21 +345,21 @@ class StickManLabel extends JLabel{
 
     private boolean invincible = false;
 
-    public StickManLabel(GameWindow pf){
+    public StickManLabel(GameWindow pf, String hatName){
         parentFrame = pf;
         frameWidth = parentFrame.getWidth();
         frameHeight = parentFrame.getHeight();
         floorHeight = frameHeight / 2 - 50;
         curX = frameWidth / 20;
         curY = floorHeight;
-        
 
-        StickMan = new MyImageIcon(imagePath).resize(width, height);
-        setIcon(StickMan);
+
+        stickImage = new MyImageIcon(imagePath).resize(width, height);
+        setIcon(stickImage);
         setBounds(curX, curY, width, height);
 
         // Add hat image
-        this.hatImage = new MyImageIcon(hatPath).resize(200/2, 200/2);
+        this.hatImage = new MyImageIcon(hatPath + hatName + ".png").resize(200/2, 200/2);
         this.hatLabel = new JLabel(hatImage);
         hatLabel.setBounds(curX, curY, 200/2, 200/2);
         hatLabel.setBorder(BorderFactory.createLineBorder(Color.YELLOW));
