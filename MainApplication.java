@@ -175,6 +175,7 @@ public class GameWindow extends JFrame implements KeyListener{
                 while (true)
                 {
                     stickmanLabel.stickmanGravity();
+                    stickmanLabel.updateHatLocation();
                 }
             } 
         }; 
@@ -294,14 +295,16 @@ public class GameWindow extends JFrame implements KeyListener{
 }
 
 class StickManLabel extends JLabel{
-    private MyImageIcon StickMan;
+    private MyImageIcon stickImage, hatImage;
+    private JLabel hatLabel;
     private GameWindow parentFrame;
     private int frameWidth, frameHeight;
     
     private int offsetX = 0;
 
     //String imagePath = "src/main/java/Project3/resources/stickman.png"; //Maven
-    String imagePath = "./resources/stickman.png";
+    String stickPath = "./resources/stickman.png";
+    String hatPath = "./resources/sombrero.png";
     
     //Stickman Properties
     private int width = 348/2, height  = 493/2;
@@ -325,9 +328,20 @@ class StickManLabel extends JLabel{
         this.curX = frameWidth / 20;
         this.curY = floorHeight;
 
-        this.StickMan = new MyImageIcon(imagePath).resize(width, height);
-        setIcon(StickMan);
+        this.stickImage = new MyImageIcon(stickPath).resize(width, height);
+        setIcon(stickImage);
         setBounds(curX, curY, width, height);
+
+        // Add hat image
+        this.hatImage = new MyImageIcon(hatPath).resize(width/2, 100);
+        this.hatLabel = new JLabel(hatImage);
+        hatLabel.setBounds(curX, curY, width/2, 100);
+        hatLabel.setBorder(BorderFactory.createLineBorder(Color.YELLOW));
+        parentFrame.add(hatLabel, 0);
+    }
+
+    public void updateHatLocation(){
+        hatLabel.setLocation(getX() + width/4, getY() - 40);
     }
 
     public void moveLeft(){
