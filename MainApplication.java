@@ -97,7 +97,6 @@ class GameWindow extends JFrame implements KeyListener{
     private StickManLabel stickmanLabel;
     private GrassfloorLabel grassfloorLabel;
     private int floorNum = 0;
-    private int[] map1 = {1,0,1,0,1}; 
 
     private int frameWidth = 1366, frameHeight  = 768;
     private boolean GameRunning = true;
@@ -226,13 +225,14 @@ class GameWindow extends JFrame implements KeyListener{
             Thread floorThread= new Thread() 
             {
                 public void run() {
+                    //1 - grass, 0 - spike
+                    int[] map1 = {1,1,0,1,0};
+                    int[] map2 = {1,0,1,1,0};
                     GrassfloorLabel grassfloorLabel = new GrassfloorLabel(currentFrame, map1, 0);
                     drawpane.add(grassfloorLabel);
-                    GrassfloorLabel grassfloorLabelnext = new GrassfloorLabel(currentFrame, map1, frameWidth);
+                    GrassfloorLabel grassfloorLabelnext = new GrassfloorLabel(currentFrame, map2, frameWidth);
                     drawpane.add(grassfloorLabelnext);
                     while (GameRunning) {
-                        //System.out.println("Floor 1: " + grassfloorLabel.getX());
-                        //System.out.println("Floor 2: " + grassfloorLabelnext.getX());
                         grassfloorLabel.updateLocation();
                         grassfloorLabelnext.updateLocation();
                         if (grassfloorLabel.getX() < -frameWidth) {
@@ -376,12 +376,11 @@ class StickManLabel extends JLabel{
     private int speedY = 50;
     private int jumpHeight = 300;
     private int jumpDistance = 100;
-    
+    private boolean invincible = false;
+
     //Environment Properties
     private int floorHeight;
     private int gravity = 10;
-
-    private boolean invincible = false;
 
     public StickManLabel(GameWindow pf, String hatName){
         parentFrame = pf;
@@ -510,6 +509,17 @@ class GrassfloorLabel extends JLabel{
         sectionWidth = width / layout.length;
         setBounds(curX + xPosition, curY, width, height);
 
+        updateMap(Maplayout);
+    }
+
+    public void updateMap(int[] newLayout){
+        removeAll(); // remove all the current labels from the GrassfloorLabel
+        spikeLabels.clear();
+        spikeOriginalXPositions.clear();
+        layout = newLayout; 
+        sectionWidth = width / layout.length;
+        curX = 0;
+    
         for(int i = 0; i < layout.length; i++){
             //Take in map layout and create floor based on it
             //First, we create a temp. JLabel(sectionLabel) to hold a section of the floor
@@ -540,6 +550,7 @@ class GrassfloorLabel extends JLabel{
 
             curX += sectionWidth;
         }
+        revalidate(); // refresh the layout of the GrassfloorLabel
     }
 
     public void updateLocation(){
@@ -569,6 +580,10 @@ class GrassfloorLabel extends JLabel{
         int oldSpeed = stageSpeed;
         stageSpeed = spd;
         return oldSpeed;
+    }
+
+    public static int getSpeed(){
+        return stageSpeed;
     }
 
     public boolean intersectsSpike(StickManLabel Player) {
