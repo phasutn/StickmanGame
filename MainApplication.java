@@ -23,7 +23,7 @@ public class MainApplication extends JFrame{
         setBounds(50, 50, frameWidth, frameHeight);
         setResizable(false);
         setVisible(true);
-        setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE); 
+        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE); 
         currentFrame = this;
         
         contentpane = (JPanel)getContentPane();
@@ -44,8 +44,7 @@ public class MainApplication extends JFrame{
         JButton startButton = new JButton("Start Game");
         startButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e){
-                dispose();
-                new GameWindow(hatOptions[hatSelected]);
+                new GameWindow((MainApplication)SwingUtilities.getWindowAncestor((Component)e.getSource()), hatOptions[hatSelected]);
             }
         });
 
@@ -82,6 +81,7 @@ public class MainApplication extends JFrame{
 class GameWindow extends JFrame implements KeyListener{
 
     private GameWindow currentFrame;
+    private MainApplication parentFrame;
 
     private JPanel contentpane;
     private JLabel drawpane;
@@ -103,23 +103,18 @@ class GameWindow extends JFrame implements KeyListener{
     private JTextField scoreText;
     private int score;
     private String hatFileName;
+    private int enemyCount;
 
 
-    public GameWindow(String hatName){
+    public GameWindow(MainApplication pf, String hatName){
         setTitle("Stickman Game");
         setBounds(50, 50, frameWidth, frameHeight);
         setResizable(true);
         setVisible(true);
-        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE); 
+        setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE); 
         currentFrame = this;
+        parentFrame = pf;
         hatFileName = hatName;
-
-        addWindowListener(new WindowAdapter() {
-            public void windowClosing(WindowEvent e){
-                GameWindow frame = (GameWindow)e.getWindow();
-              JOptionPane.showMessageDialog(frame, ("Score = " + score), "Game Ended", JOptionPane.INFORMATION_MESSAGE);
-            }
-        });
         
         contentpane = (JPanel)getContentPane();
         contentpane.setLayout(new BorderLayout());
@@ -140,14 +135,26 @@ class GameWindow extends JFrame implements KeyListener{
 
         JPanel control  = new JPanel();
         control.setBounds(0,0,1000,50);
+
+        JButton endButton = new JButton("Quit Game");
+        endButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e){
+                GameRunning = false;
+                EnemyLabel.killAllAlive();
+                dispose();
+                new EndWindow(parentFrame, score);
+            }
+        });
+        control.add(endButton);
+
         control.add(new JLabel("Diffuculty - "));
 
         
-        JRadioButton superEasyBtn = new JRadioButton("Super Easy");
+        JRadioButton superEasyBtn = new JRadioButton("Super Slow");
         superEasyBtn.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e){
             setSpeed(20, 300);
         }});
-        JRadioButton easyBtn = new JRadioButton("Easy");
+        JRadioButton easyBtn = new JRadioButton("Slow");
         easyBtn.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e){
             setSpeed(15, 250);
         }});
@@ -155,11 +162,11 @@ class GameWindow extends JFrame implements KeyListener{
         mediumBtn.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e){
             setSpeed(10, 200);
         }});
-        JRadioButton hardBtn = new JRadioButton("Hard");
+        JRadioButton hardBtn = new JRadioButton("Fast");
         hardBtn.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e){
             setSpeed(8, 100);
         }});
-        JRadioButton superHardBtn = new JRadioButton("Super Hard");
+        JRadioButton superHardBtn = new JRadioButton("LIGHTSPEED");
         superHardBtn.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e){
             setSpeed(2, 50);
         }});
@@ -199,6 +206,7 @@ class GameWindow extends JFrame implements KeyListener{
         setStickmanThread();
         setEnemySpawnThread(stickmanLabel);
         validate(); //To Update Components Added
+        setInvincibleFrame();
     }
 
     public void setSpeed(int stageSpeed, int enemySpeed){
@@ -258,11 +266,14 @@ class GameWindow extends JFrame implements KeyListener{
     public void setEnemySpawnThread(StickManLabel stickmanLabel){
         Thread enemySpawnThread = new Thread(){
             public void run(){
-                while(true){
+                while(GameRunning){
                     setEnemyThread(stickmanLabel);
                     try { Thread.sleep(3000); } // Time between enemy spawn
                     catch(InterruptedException e) {}
+                    System.out.println("yay yay");
                 }
+                System.out.println("yay yay yay");
+                Thread.currentThread().interrupt();
             }
         };
         enemySpawnThread.start();
@@ -342,8 +353,6 @@ class GameWindow extends JFrame implements KeyListener{
         if(key == 's' || key == 'S'){
             stickmanLabel.moveDown();
         }
-        
-
     }
     
     @Override
@@ -356,6 +365,7 @@ class GameWindow extends JFrame implements KeyListener{
     // }
 
 }
+
 
 class StickManLabel extends JLabel{
     private MyImageIcon stickImage, hatImage;
@@ -679,7 +689,59 @@ class EnemyLabel extends JLabel{
     }
 }
 
+class EndWindow extends JFrame{
+    private EndWindow currentFrame;
+    private MainApplication mainFrame;
+    private JPanel contentpane;
+    private JTextArea textArea;
+    private MyImageIcon backgroundImg;
+    private int frameWidth = 800, frameHeight  = 600;
+    
 
+    public EndWindow(MainApplication pf, int score){
+        setTitle("End Page");
+        setBounds(50, 50, frameWidth, frameHeight);
+        setResizable(false);
+        setVisible(true);
+        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE); 
+        currentFrame = this;
+        mainFrame = pf;
+        
+        contentpane = (JPanel)getContentPane();
+        contentpane.setLayout(new BorderLayout());
+
+        AddComponents();
+        validate();
+    }
+
+    public void AddComponents(){
+
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setLayout(new FlowLayout());
+
+        JButton titleButton = new JButton("Back to Title");
+        titleButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e){
+                dispose();
+            }
+        });
+
+        JButton exitButton = new JButton("Exit");
+        exitButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e){
+                mainFrame.dispose();
+                dispose();
+                System.exit(0);
+            }
+        });
+
+        buttonPanel.add(titleButton);
+        buttonPanel.add(exitButton);
+
+        //contentpane.setBackground(new Color(255, 255, 0));
+        contentpane.add(buttonPanel, BorderLayout.CENTER);
+    }
+}
 
 
 class MyImageIcon extends ImageIcon
