@@ -673,8 +673,9 @@ class EnemyLabel extends JLabel{
     private static int speed = 100;
     private int damage = 500;
     private StickManLabel stickManLabel;
-    private MySoundEffect hurtSound;
+    private MySoundEffect hurtSound, monsterSound;
     private String hurtSoundPath = "./resources/sounds/hurtSound.wav";
+    private String monsterSoundPath = "./resources/sounds/monsterSound.wav";
 
     public EnemyLabel(GameWindow pf, JLabel dp, StickManLabel stickman){
         parentFrame = pf;
@@ -684,6 +685,7 @@ class EnemyLabel extends JLabel{
         stickManLabel = stickman;
 
         hurtSound = new MySoundEffect(hurtSoundPath);
+        monsterSound = new MySoundEffect(monsterSoundPath);
         curY = (int)(Math.random() * 7777) % ((parentFrame.getHeight() /2) + 50);
         curX = parentFrame.getWidth() + 100;
         GrassImage = new MyImageIcon(imagePath).resize(width, height);
@@ -693,13 +695,13 @@ class EnemyLabel extends JLabel{
         addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e){
                 parentFrame.plusEnemy();
+                monsterSound.playOnce();
                 drawpane.remove((EnemyLabel)e.getSource());
                 alive = false;
                 revalidate();
                 repaint();
             }
         });
-
         //this.setBorder(BorderFactory.createLineBorder(Color.YELLOW));
     }
 
