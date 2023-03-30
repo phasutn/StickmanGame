@@ -145,6 +145,7 @@ class GameWindow extends JFrame implements KeyListener{
                 GameRunning = false;
                 EnemyLabel.killAllAlive();
                 dispose();
+                themeSound.stop();
                 new EndWindow(parentFrame, score);
             }
         });
@@ -425,13 +426,13 @@ class StickManLabel extends JLabel{
     }
 
     public void moveLeft(){
-        if(getX() - speed > 0) setLocation( getX() - speed, getY());
-        else setLocation( frameWidth, getY());
+        if(getX() - speed + 50 > 0) setLocation( getX() - speed, getY());
+        else setLocation( getX(), getY());
     }
     
     public void moveRight(){
-        if(getX() + speed < frameWidth) setLocation( getX() + speed, getY());
-        else setLocation( 0, getY());
+        if(getX() + speed + 150 < frameWidth) setLocation( getX() + speed, getY());
+        else setLocation( getX(), getY());
     }
 
     public void moveUp(){
@@ -450,7 +451,8 @@ class StickManLabel extends JLabel{
                     t += 0.1;
                     currentX = (int) (initialX + (targetX - initialX) * t);
                     currentY = (int) (initialY + (targetY - initialY) * t);
-                    setLocation(currentX, currentY);
+                    if(currentX + 150 > frameWidth){setLocation(getX(), currentY);}
+                    else setLocation(currentX, currentY);
                     try {
                         Thread.sleep(20);
                     } catch (InterruptedException e) {
@@ -463,6 +465,9 @@ class StickManLabel extends JLabel{
         }
     }
 
+    public void moveDown(){
+        setLocation(getX() ,floorHeight);
+    }
 
     public int getFloor(){
         return floorHeight;
