@@ -377,7 +377,7 @@ class GameWindow extends JFrame implements KeyListener{
                 int time = 2000;
                 boolean visible = false;
                 stickmanLabel.setInvincible(true);
-                stickmanLabel.setBorder(BorderFactory.createLineBorder(Color.YELLOW));
+                //stickmanLabel.setBorder(BorderFactory.createLineBorder(Color.YELLOW));
                 for(int i=0; i<=time; i+=time/10){
                     stickmanLabel.setVisible(visible);
                     visible = !visible;
@@ -387,7 +387,7 @@ class GameWindow extends JFrame implements KeyListener{
                 stickmanLabel.setVisible(true);
                 stickmanLabel.setInvincible(false);
                 Thread.currentThread().interrupt();
-                stickmanLabel.setBorder(BorderFactory.createLineBorder(Color.RED));
+                //stickmanLabel.setBorder(BorderFactory.createLineBorder(Color.RED));
             }
         };
         invisibleframeThread.start();
