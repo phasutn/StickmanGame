@@ -789,6 +789,7 @@ class EndWindow extends JFrame{
         titleButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e){
                 dispose();
+                new MainApplication();
             }
         });
 
