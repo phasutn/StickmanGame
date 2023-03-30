@@ -133,7 +133,7 @@ class GameWindow extends JFrame implements KeyListener{
     public void AddComponents(){
         //String path = "src/main/java/Project3/resources/"; //Maven
         String path = "./resources/";
-        backgroundImg  = new MyImageIcon(path + "testbg.jpg").resize(frameWidth, frameHeight);
+        backgroundImg  = new MyImageIcon(path + "gamebg.jpg").resize(frameWidth, frameHeight);
         
         themeSound = new MySoundEffect(path + "/sounds/themeSound.wav"); 
         themeSound.playLoop(); themeSound.setVolume(0.4f);
