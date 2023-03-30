@@ -13,7 +13,7 @@ public class MainApplication extends JFrame{
     private JTextArea textArea;
     private MyImageIcon backgroundImg;
     private int frameWidth = 800, frameHeight  = 600;
-    private String hatOptions[] = {"stickman", "sombrero"};
+    private String hatOptions[] = {"none", "sombrero", "crown", "beanie", "tophat"};
     private int hatSelected = 0;
 
     
@@ -226,7 +226,7 @@ class GameWindow extends JFrame implements KeyListener{
             {
                 public void run() {
                     //1 - grass, 0 - spike
-                    int[] map1 = {1,1,0,1,0};
+                    int[] map1 = {1,1,0,1,1};
                     int[] map2 = {1,0,1,1,0};
                     GrassfloorLabel grassfloorLabel = new GrassfloorLabel(currentFrame, map1, 0);
                     drawpane.add(grassfloorLabel);
@@ -271,12 +271,12 @@ class GameWindow extends JFrame implements KeyListener{
     public void setEnemyThread(StickManLabel stickmanLabel){
         Thread enemyThread = new Thread(){
             public void run(){
-                EnemyLabel enemyLabel = new EnemyLabel(currentFrame, drawpane, stickmanLabel);
-                drawpane.add(enemyLabel);
-                while(enemyLabel.isAlive() && EnemyLabel.isAllAlive()){
-                    enemyLabel.move();
-                }
-                Thread.currentThread().interrupt();
+                // EnemyLabel enemyLabel = new EnemyLabel(currentFrame, drawpane, stickmanLabel);
+                // drawpane.add(enemyLabel);
+                // while(enemyLabel.isAlive() && EnemyLabel.isAllAlive()){
+                //     enemyLabel.move();
+                // }
+                // Thread.currentThread().interrupt();
             }
         };
         enemyThread.start();
@@ -367,7 +367,7 @@ class StickManLabel extends JLabel{
 
     //String imagePath = "src/main/java/Project3/resources/stickman.png"; //Maven
     String imagePath = "./resources/stickman.png";
-    String hatPath = "./resources/";
+    String hatPath = "./resources/hats/";
 
     //Stickman Properties
     private int width = 348/2, height  = 493/2;
@@ -396,7 +396,7 @@ class StickManLabel extends JLabel{
         setBounds(curX, curY, width, height);
 
         // Add hat image
-        this.hatImage = new MyImageIcon(hatPath + hatName + ".png").resize(200/2, 200/2);
+        this.hatImage = new MyImageIcon(hatPath + hatName + ".png").resize(100, 100);
         this.hatLabel = new JLabel(hatImage);
         hatLabel.setBounds(curX, curY, 200/2, 200/2);
         hatLabel.setBorder(BorderFactory.createLineBorder(Color.YELLOW));
