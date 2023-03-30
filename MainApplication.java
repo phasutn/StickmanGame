@@ -235,7 +235,7 @@ public class GameWindow extends JFrame implements KeyListener{
             public void run(){
                 EnemyLabel enemyLabel = new EnemyLabel(currentFrame, drawpane, stickmanLabel);
                 drawpane.add(enemyLabel);
-                while(enemyLabel.isAlive() && enemyLabel.isAllAlive()){
+                while(enemyLabel.isAlive() && EnemyLabel.isAllAlive()){
                     enemyLabel.move();
                 }
                 Thread.currentThread().interrupt();
@@ -338,12 +338,11 @@ class StickManLabel extends JLabel{
     private int speedY = 50;
     private int jumpHeight = 300;
     private int jumpDistance = 100;
-    
+    private boolean invincible = false;
+
     //Environment Properties
     private int floorHeight;
     private int gravity = 10;
-
-    private boolean invincible = false;
 
     public StickManLabel(GameWindow pf, String hatName){
         parentFrame = pf;
@@ -531,6 +530,10 @@ class GrassfloorLabel extends JLabel{
         int oldSpeed = stageSpeed;
         stageSpeed = spd;
         return oldSpeed;
+    }
+
+    public static int getSpeed(){
+        return stageSpeed;
     }
 
     public boolean intersectsSpike(StickManLabel Player) {
