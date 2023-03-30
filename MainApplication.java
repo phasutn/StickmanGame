@@ -62,7 +62,7 @@ public class MainApplication extends JFrame{
 
         JPanel bottomPanel = new JPanel();
 
-        bottomPanel.setBackground(new Color(255, 255, 0));
+        bottomPanel.setBackground(new Color(0, 191, 64));
 
         bottomPanel.add(startButton);
         bottomPanel.add(comboBox);
@@ -86,23 +86,17 @@ class GameWindow extends JFrame implements KeyListener{
     private JPanel contentpane;
     private JLabel drawpane;
 
-    private JComboBox<String>        combo;
-    private JToggleButton    []tb;
-    private ButtonGroup      bgroup;
-    private JButton          swimButton, stopButton, moreButton;
-    private JTextField       currentLevel;
-
     private MySoundEffect themeSound;
     private MyImageIcon backgroundImg;
     private StickManLabel stickmanLabel;
     private GrassfloorLabel grassfloorLabel;
-    private int floorNum = 0;
+    private JButton speedButton;
 
     private int frameWidth = 1366, frameHeight  = 768;
     private boolean GameRunning = true;
     private JTextField scoreText;
-    private int score;
     private String hatFileName;
+    private int score;
     private int enemyCount;
 
 
@@ -118,6 +112,7 @@ class GameWindow extends JFrame implements KeyListener{
 
         addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e){
+                GameRunning = false;
                 themeSound.stop();
             }
         });
@@ -127,6 +122,7 @@ class GameWindow extends JFrame implements KeyListener{
         addKeyListener(this);
         AddComponents();
         requestFocus();
+        setInvincibleFrame();
     }
 
     public void AddComponents(){
@@ -138,9 +134,7 @@ class GameWindow extends JFrame implements KeyListener{
         themeSound.playLoop(); themeSound.setVolume(0.4f);
 
         stickmanLabel = new StickManLabel(currentFrame, hatFileName);
-        stickmanLabel.setBorder(BorderFactory.createLineBorder(Color.RED));
-        currentLevel = new JTextField("0", 3);		
-        currentLevel.setEditable(false);
+        //stickmanLabel.setBorder(BorderFactory.createLineBorder(Color.RED));
 
         JPanel control  = new JPanel();
         control.setBounds(0,0,1000,50);
@@ -162,24 +156,24 @@ class GameWindow extends JFrame implements KeyListener{
         
         JRadioButton superEasyBtn = new JRadioButton("Super Slow");
         superEasyBtn.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e){
-            setSpeed(20, 300);
+            setSpeed(300, 20, 300);
         }});
         JRadioButton easyBtn = new JRadioButton("Slow");
         easyBtn.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e){
-            setSpeed(15, 250);
+            setSpeed(200, 15, 250);
         }});
         JRadioButton mediumBtn = new JRadioButton("Medium");
         mediumBtn.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e){
-            setSpeed(10, 200);
+            setSpeed(120, 10, 200);
         }});
         mediumBtn.setSelected(true);
         JRadioButton hardBtn = new JRadioButton("Fast");
         hardBtn.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e){
-            setSpeed(8, 100);
+            setSpeed(80, 8, 100);
         }});
         JRadioButton superHardBtn = new JRadioButton("LIGHTSPEED");
         superHardBtn.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e){
-            setSpeed(2, 50);
+            setSpeed(1, 3, 50);
         }});
 
         ButtonGroup diffBtnGroup = new ButtonGroup();
@@ -194,18 +188,24 @@ class GameWindow extends JFrame implements KeyListener{
         control.add(hardBtn);
         control.add(superHardBtn);
 
-        JButton speedButton = new JButton("Speed Boost"); // Button to use speed boost
+        speedButton = new JButton("Boost Not Ready"); // Button to use speed boost
         speedButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e){
-                setSpeedBoostThread();
+                if(enemyCount >= 5){
+                    speedButton.setText("Boost Not Ready");
+                    setSpeedBoostThread();
+                }
                 requestFocus();
             }
         });
 
+        
+        JLabel scoreTextLabel = new JLabel("Score:");
         scoreText = new JTextField("0", 5); // Text Field for score
         scoreText.setEditable(false);
 
         control.add(speedButton);
+        control.add(scoreTextLabel);
         control.add(scoreText);
         drawpane = new JLabel();
         drawpane.setLayout(null);
@@ -214,23 +214,54 @@ class GameWindow extends JFrame implements KeyListener{
         contentpane.add(control, BorderLayout.NORTH);
         contentpane.add(drawpane, BorderLayout.CENTER); 
         setFloorThread(); 
+        setScoreThread();
         setStickmanThread();
         setEnemySpawnThread(stickmanLabel);
         validate(); //To Update Components Added
         setInvincibleFrame();
     }
 
-    public void setSpeed(int stageSpeed, int enemySpeed){
+    public void setSpeed(int jumpDistance, int stageSpeed, int enemySpeed){
+        StickManLabel.setJumpDistance(jumpDistance);
         GrassfloorLabel.changeSpeed(stageSpeed);
         EnemyLabel.changeSpeed(enemySpeed);
         requestFocus();
     }
 
+    public synchronized void plusEnemy(){
+        enemyCount++;
+        if(enemyCount >= 5) speedButton.setText("Boost Ready");
+    }
+
+    public synchronized void deductScore(int minusScore){
+        System.out.println(minusScore);
+        score -= minusScore;
+        scoreText.setText("Score: " + Integer.toString(score));
+    }
+
+    public void setScoreThread(){
+        Thread scoreThread = new Thread() {
+            public void run()
+            {
+                while (GameRunning)
+                {
+                    synchronized(this){
+                        score++;
+                        scoreText.setText(Integer.toString(score));
+                    }
+                    try { Thread.sleep(GrassfloorLabel.getSpeed()); } // Time between enemy spawn
+                    catch(InterruptedException e) {}
+                }
+            } 
+        }; 
+        scoreThread.start();
+    }
+    
     public void setStickmanThread(){
         Thread stickmanThread = new Thread() {
             public void run()
             {
-                while (true)
+                while (GameRunning)
                 {
                     stickmanLabel.stickmanGravity();
                     stickmanLabel.updateHatLocation();
@@ -269,7 +300,7 @@ class GameWindow extends JFrame implements KeyListener{
                             if(!stickmanLabel.isInvincible()){
                                 hurtSound.playOnce();
                                 setInvincibleFrame();
-                                deductScore(3);
+                                deductScore(500);
                             }
                         }
                     }
@@ -347,11 +378,6 @@ class GameWindow extends JFrame implements KeyListener{
         };
         invisibleframeThread.start();
     }
-
-    public synchronized void deductScore(int minusScore){
-            score -= minusScore;
-            scoreText.setText(Integer.toString(score));
-    }
     
     @Override
     public void keyPressed(KeyEvent e){
@@ -397,7 +423,7 @@ class StickManLabel extends JLabel{
     private int speed = 20;
     private int speedY = 50;
     private int jumpHeight = 300;
-    private int jumpDistance = 100;
+    private static int jumpDistance = 100;
     private boolean invincible = false;
 
     //Environment Properties
@@ -420,7 +446,7 @@ class StickManLabel extends JLabel{
         this.hatImage = new MyImageIcon(hatPath + hatName + ".png").resize(100, 100);
         this.hatLabel = new JLabel(hatImage);
         hatLabel.setBounds(curX, curY, 200/2, 200/2);
-        hatLabel.setBorder(BorderFactory.createLineBorder(Color.YELLOW));
+        //hatLabel.setBorder(BorderFactory.createLineBorder(Color.YELLOW));
         parentFrame.add(hatLabel, 0);
 
         //Add sounds
@@ -492,6 +518,10 @@ class StickManLabel extends JLabel{
         repaint();
     }
 
+    public static void setJumpDistance(int newDistance){
+        jumpDistance = newDistance;
+    }
+
     public boolean isInvincible(){
         return invincible;
     }
@@ -559,7 +589,7 @@ class GrassfloorLabel extends JLabel{
                 JLabel sectionLabel = new JLabel(SpikeImage);
                 sectionLabel.setBounds(curX, curY, sectionWidth, height);
                 //sectionLabel.setBounds(curX + sectionWidth/4, curY, sectionWidth/3, height);
-                sectionLabel.setBorder(BorderFactory.createLineBorder(Color.BLUE));
+                //sectionLabel.setBorder(BorderFactory.createLineBorder(Color.BLUE));
                 
                 //this label is for hitbox and cannot be seen on the frame
                 JLabel spikeLabel = new JLabel();
@@ -639,7 +669,7 @@ class EnemyLabel extends JLabel{
     private boolean alive;
     private static boolean allAlive;
     private static int speed = 100;
-    private int damage = 5;
+    private int damage = 750;
     private StickManLabel stickManLabel;
 
     public EnemyLabel(GameWindow pf, JLabel dp, StickManLabel stickman){
@@ -657,6 +687,7 @@ class EnemyLabel extends JLabel{
         setBounds(curX, curY, width, height);
         addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e){
+                parentFrame.plusEnemy();
                 drawpane.remove((EnemyLabel)e.getSource());
                 alive = false;
                 revalidate();
@@ -664,7 +695,7 @@ class EnemyLabel extends JLabel{
             }
         });
 
-        this.setBorder(BorderFactory.createLineBorder(Color.YELLOW));
+        //this.setBorder(BorderFactory.createLineBorder(Color.YELLOW));
     }
 
     public void move(){
@@ -678,7 +709,6 @@ class EnemyLabel extends JLabel{
                 parentFrame.setInvincibleFrame();
                 parentFrame.deductScore(damage);
                 alive = false;
-                System.out.println("HIT ENEMY");
             }
         }
         validate();
@@ -713,6 +743,7 @@ class EndWindow extends JFrame{
     private JTextArea textArea;
     private MyImageIcon backgroundImg;
     private int frameWidth = 800, frameHeight  = 600;
+    private int totalScore;
     
 
     public EndWindow(MainApplication pf, int score){
@@ -723,6 +754,7 @@ class EndWindow extends JFrame{
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE); 
         currentFrame = this;
         mainFrame = pf;
+        totalScore = score;
         
         contentpane = (JPanel)getContentPane();
         contentpane.setLayout(new BorderLayout());
@@ -755,7 +787,14 @@ class EndWindow extends JFrame{
         buttonPanel.add(titleButton);
         buttonPanel.add(exitButton);
 
-        //contentpane.setBackground(new Color(255, 255, 0));
+        JPanel textPanel = new JPanel(new FlowLayout());
+        JLabel textLabel = new JLabel("Total Score = " + totalScore);
+        textLabel.setForeground(Color.WHITE);
+        textPanel.add(textLabel);
+
+        textPanel.setBackground(new Color(16, 133, 232));
+        buttonPanel.setBackground(new Color(181, 221, 255));
+        contentpane.add(textPanel, BorderLayout.NORTH);
         contentpane.add(buttonPanel, BorderLayout.CENTER);
     }
 }
