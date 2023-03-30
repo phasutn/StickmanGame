@@ -13,7 +13,7 @@ public class MainApplication extends JFrame{
     private JTextArea textArea;
     private MyImageIcon backgroundImg;
     private int frameWidth = 800, frameHeight  = 600;
-    private String hatOptions[] = {"none", "sombrero", "crown", "beanie", "tophat"};
+    private String hatOptions[] = {"none", "sombrero", "crown", "beanie", "tophat", "tinfoil"};
     private int hatSelected = 0;
 
     
