@@ -133,6 +133,9 @@ class GameWindow extends JFrame implements KeyListener{
         String path = "./resources/";
         backgroundImg  = new MyImageIcon(path + "testbg.jpg").resize(frameWidth, frameHeight);
         
+        themeSound = new MySoundEffect(path + "/sounds/themeSound.wav"); 
+        themeSound.playLoop(); themeSound.setVolume(0.4f);
+
         stickmanLabel = new StickManLabel(currentFrame, hatFileName);
         stickmanLabel.setBorder(BorderFactory.createLineBorder(Color.RED));
         currentLevel = new JTextField("0", 3);		
@@ -232,6 +235,10 @@ class GameWindow extends JFrame implements KeyListener{
                     drawpane.add(grassfloorLabel);
                     GrassfloorLabel grassfloorLabelnext = new GrassfloorLabel(currentFrame, map2, frameWidth);
                     drawpane.add(grassfloorLabelnext);
+
+                    MySoundEffect hurtSound;
+                    String hurtSoundPath = "./resources/sounds/hurtSound.wav";
+                    hurtSound = new MySoundEffect(hurtSoundPath);
                     while (GameRunning) {
                         grassfloorLabel.updateLocation();
                         grassfloorLabelnext.updateLocation();
@@ -244,6 +251,7 @@ class GameWindow extends JFrame implements KeyListener{
                         if(grassfloorLabel.intersectsSpike(stickmanLabel) ||
                            grassfloorLabelnext.intersectsSpike(stickmanLabel)){
                             if(!stickmanLabel.isInvincible()){
+                                hurtSound.playOnce();
                                 setInvincibleFrame();
                                 deductScore(3);
                             }
@@ -358,7 +366,6 @@ class GameWindow extends JFrame implements KeyListener{
 }
 
 class StickManLabel extends JLabel{
-    private MyImageIcon stickImage, hatImage;
     private JLabel hatLabel;
     private GameWindow parentFrame;
     private int frameWidth, frameHeight;
@@ -368,6 +375,11 @@ class StickManLabel extends JLabel{
     //String imagePath = "src/main/java/Project3/resources/stickman.png"; //Maven
     String imagePath = "./resources/stickman.png";
     String hatPath = "./resources/hats/";
+    String jumpSoundPath = "./resources/sounds/jumpSound.wav";
+
+    //Resources
+    private MyImageIcon stickImage, hatImage;
+    private MySoundEffect jumpSound;
 
     //Stickman Properties
     private int width = 348/2, height  = 493/2;
@@ -390,7 +402,6 @@ class StickManLabel extends JLabel{
         curX = frameWidth / 20;
         curY = floorHeight;
 
-
         stickImage = new MyImageIcon(imagePath).resize(width, height);
         setIcon(stickImage);
         setBounds(curX, curY, width, height);
@@ -401,6 +412,9 @@ class StickManLabel extends JLabel{
         hatLabel.setBounds(curX, curY, 200/2, 200/2);
         hatLabel.setBorder(BorderFactory.createLineBorder(Color.YELLOW));
         parentFrame.add(hatLabel, 0);
+
+        //Add sounds
+        this.jumpSound = new MySoundEffect(jumpSoundPath);
     }
 
     public void updateHatLocation(){
@@ -419,6 +433,7 @@ class StickManLabel extends JLabel{
 
     public void moveUp(){
         if(getY() == floorHeight){
+            jumpSound.playOnce();
             System.out.println("JUMP");
             new Thread(() -> {
                 int initialY = getY();
