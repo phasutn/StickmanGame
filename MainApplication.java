@@ -176,6 +176,7 @@ public class GameWindow extends JFrame implements KeyListener{
                 while (true)
                 {
                     stickmanLabel.stickmanGravity();
+                    stickmanLabel.updateHatLocation();
                 }
             } 
         }; 
@@ -318,14 +319,15 @@ public class GameWindow extends JFrame implements KeyListener{
 }
 
 class StickManLabel extends JLabel{
-    private MyImageIcon StickMan;
+    private MyImageIcon stickImage, hatImage;
+    private JLabel hatLabel;
     private GameWindow parentFrame;
     private int frameWidth, frameHeight;
     
     private int offsetX = 0;
 
     //String imagePath = "src/main/java/Project3/resources/stickman.png"; //Maven
-    String imagePath = "./resources/";
+    String imagePath = "./resources/stickman.png";
     
     //Stickman Properties
     private int width = 348/2, height  = 493/2;
@@ -333,14 +335,15 @@ class StickManLabel extends JLabel{
     private int speed = 20;
     private int speedY = 50;
     private int jumpHeight = 300;
+    private int jumpDistance = 100;
     
     //Environment Properties
     private int floorHeight;
-    private int gravity = 20;
+    private int gravity = 10;
 
     private boolean invincible = false;
 
-    public StickManLabel(GameWindow pf, String imageName){
+    public StickManLabel(GameWindow pf){
         parentFrame = pf;
         frameWidth = parentFrame.getWidth();
         frameHeight = parentFrame.getHeight();
@@ -349,9 +352,20 @@ class StickManLabel extends JLabel{
         curY = floorHeight;
         
 
-        StickMan = new MyImageIcon(imagePath + imageName + ".png").resize(width, height);
+        StickMan = new MyImageIcon(imagePath).resize(width, height);
         setIcon(StickMan);
         setBounds(curX, curY, width, height);
+
+        // Add hat image
+        this.hatImage = new MyImageIcon(hatPath).resize(width/2, 100);
+        this.hatLabel = new JLabel(hatImage);
+        hatLabel.setBounds(curX, curY, width/2, 100);
+        hatLabel.setBorder(BorderFactory.createLineBorder(Color.YELLOW));
+        parentFrame.add(hatLabel, 0);
+    }
+
+    public void updateHatLocation(){
+        hatLabel.setLocation(getX() + width/4, getY() - 40);
     }
 
     public void moveLeft(){
@@ -365,18 +379,35 @@ class StickManLabel extends JLabel{
     }
 
     public void moveUp(){
-        if(getY() == floorHeight) setLocation( getX(), getY() - jumpHeight);
+        if(getY() == floorHeight){
+            System.out.println("JUMP");
+            new Thread(() -> {
+                int initialY = getY();
+                int initialX = getX();
+                int targetY = floorHeight - jumpHeight;
+                int targetX = initialX + jumpDistance;
+                int currentY = initialY;
+                int currentX = initialX;
+                double t = 0;
+                while (t <= 1.0) {
+                    t += 0.1;
+                    currentX = (int) (initialX + (targetX - initialX) * t);
+                    currentY = (int) (initialY + (targetY - initialY) * t);
+                    setLocation(currentX, currentY);
+                    try {
+                        Thread.sleep(20);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                currentY = targetY;
+                setLocation(getX(), currentY);
+            }).start();
+        }
     }
 
     public void moveDown(){
-        if(getY() != floorHeight){
-            if(getY() - speedY < floorHeight){
-                setLocation(getX(), getY() + speedY);
-            }
-            else{
-                setLocation(getX(), floorHeight);
-            }
-        }
+        setLocation(getX() ,floorHeight);
     }
 
     public int getFloor(){
@@ -392,7 +423,7 @@ class StickManLabel extends JLabel{
                 setLocation(getX(), floorHeight);
             }
             repaint();
-            try { Thread.sleep(50); } 
+            try { Thread.sleep(gravity); } 
             catch (InterruptedException e) { e.printStackTrace(); } 
         }
         repaint();
@@ -489,7 +520,7 @@ class GrassfloorLabel extends JLabel{
             JLabel spikeLabel = spikeLabels.get(i);
             int originalX = spikeOriginalXPositions.get(i);
             spikeLabel.setLocation(originalX + getX(), getY()); 
-            //System.out.println("AAAAAAAA" + spikeLabel.getBounds());
+            System.out.println("AAAAAAAA" + spikeLabel.getBounds());
         }
         repaint();
     }
