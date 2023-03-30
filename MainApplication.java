@@ -106,7 +106,7 @@ class GameWindow extends JFrame implements KeyListener{
 
     public GameWindow(MainApplication pf, String hatName){
         setTitle("Stickman Game");
-        setBounds(500, 250, frameWidth, frameHeight);
+        setBounds(250, 150, frameWidth, frameHeight);
         setResizable(true);
         setVisible(true);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -290,7 +290,8 @@ class GameWindow extends JFrame implements KeyListener{
                     drawpane.add(grassfloorLabel);
                     GrassfloorLabel grassfloorLabelnext = new GrassfloorLabel(currentFrame, map2, frameWidth);
                     drawpane.add(grassfloorLabelnext);
-
+                    grassfloorLabelnext.setLocation(frameWidth);
+                    
                     MySoundEffect hurtSound;
                     String hurtSoundPath = "./resources/sounds/hurtSound.wav";
                     hurtSound = new MySoundEffect(hurtSoundPath);
@@ -306,6 +307,7 @@ class GameWindow extends JFrame implements KeyListener{
                         if(grassfloorLabel.intersectsSpike(stickmanLabel) ||
                            grassfloorLabelnext.intersectsSpike(stickmanLabel)){
                             if(!stickmanLabel.isInvincible()){
+                                System.out.println("hurt");
                                 hurtSound.playOnce();
                                 setInvincibleFrame();
                                 deductScore(500);
@@ -375,6 +377,7 @@ class GameWindow extends JFrame implements KeyListener{
                 int time = 2000;
                 boolean visible = false;
                 stickmanLabel.setInvincible(true);
+                stickmanLabel.setBorder(BorderFactory.createLineBorder(Color.YELLOW));
                 for(int i=0; i<=time; i+=time/10){
                     stickmanLabel.setVisible(visible);
                     visible = !visible;
@@ -384,6 +387,7 @@ class GameWindow extends JFrame implements KeyListener{
                 stickmanLabel.setVisible(true);
                 stickmanLabel.setInvincible(false);
                 Thread.currentThread().interrupt();
+                stickmanLabel.setBorder(BorderFactory.createLineBorder(Color.RED));
             }
         };
         invisibleframeThread.start();
