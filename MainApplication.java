@@ -777,6 +777,7 @@ class EndWindow extends JFrame{
 
         AddComponents();
         validate();
+        repaint();
     }
 
     public void AddComponents(){
