@@ -98,7 +98,6 @@ public class GameWindow extends JFrame implements KeyListener{
     private StickManLabel stickmanLabel;
     private GrassfloorLabel grassfloorLabel;
     private int floorNum = 0;
-    private int[] map1 = {1,0,1,0,1}; 
 
     private int frameWidth = 1366, frameHeight  = 768;
     private boolean GameRunning = true;
@@ -187,13 +186,14 @@ public class GameWindow extends JFrame implements KeyListener{
             Thread floorThread= new Thread() 
             {
                 public void run() {
+                    //1 - grass, 0 - spike
+                    int[] map1 = {1,1,0,1,0};
+                    int[] map2 = {1,0,1,1,0};
                     GrassfloorLabel grassfloorLabel = new GrassfloorLabel(currentFrame, map1, 0);
                     drawpane.add(grassfloorLabel);
-                    GrassfloorLabel grassfloorLabelnext = new GrassfloorLabel(currentFrame, map1, frameWidth);
+                    GrassfloorLabel grassfloorLabelnext = new GrassfloorLabel(currentFrame, map2, frameWidth);
                     drawpane.add(grassfloorLabelnext);
                     while (GameRunning) {
-                        //System.out.println("Floor 1: " + grassfloorLabel.getX());
-                        //System.out.println("Floor 2: " + grassfloorLabelnext.getX());
                         grassfloorLabel.updateLocation();
                         grassfloorLabelnext.updateLocation();
                         if (grassfloorLabel.getX() < -frameWidth) {
@@ -471,6 +471,17 @@ class GrassfloorLabel extends JLabel{
         sectionWidth = width / layout.length;
         setBounds(curX + xPosition, curY, width, height);
 
+        updateMap(Maplayout);
+    }
+
+    public void updateMap(int[] newLayout){
+        removeAll(); // remove all the current labels from the GrassfloorLabel
+        spikeLabels.clear();
+        spikeOriginalXPositions.clear();
+        layout = newLayout; 
+        sectionWidth = width / layout.length;
+        curX = 0;
+    
         for(int i = 0; i < layout.length; i++){
             //Take in map layout and create floor based on it
             //First, we create a temp. JLabel(sectionLabel) to hold a section of the floor
@@ -501,6 +512,7 @@ class GrassfloorLabel extends JLabel{
 
             curX += sectionWidth;
         }
+        revalidate(); // refresh the layout of the GrassfloorLabel
     }
 
     public void updateLocation(){
