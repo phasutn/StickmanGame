@@ -12,7 +12,12 @@ public class MainApplication extends JFrame{
     private JPanel contentpane;
     private JLabel drawpane;
     private JTextArea textArea;
+    private MyImageIcon backgroundImg;
     private int frameWidth = 800, frameHeight  = 600;
+    private String hatOptions[] = {"stickman"};
+    private int hatSelected = 0;
+
+    
 
     public MainApplication(){
         setTitle("Title Page");
@@ -30,28 +35,26 @@ public class MainApplication extends JFrame{
     }
 
     public void AddComponents(){
+        //String path = "src/main/java/Project3/resources/"; //Maven
+        String path = "./resources/mainappbg.png";
+        backgroundImg  = new MyImageIcon(path).resize(frameWidth, frameHeight);
+        drawpane = new JLabel();
+        drawpane.setIcon(backgroundImg);
+        drawpane.setLayout(null);
+
         JButton startButton = new JButton("Start Game");
         startButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e){
                 dispose();
-                new GameWindow();
+                new GameWindow(hatOptions[hatSelected]);
             }
         });
 
-        JComboBox<String> comboBox = new JComboBox<>();
-        comboBox.addItem("Option 1");
-        comboBox.addItem("Option 2");
-        comboBox.addItem("Option 3");
+        JComboBox<String> comboBox = new JComboBox<>(hatOptions);
+        comboBox.setSelectedIndex(0);
         comboBox.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                String option = (String) comboBox.getSelectedItem();
-                if (option.equals("Option 1")) {
-                    textArea.setText("Option 1 selected");
-                } else if (option.equals("Option 2")) {
-                    textArea.setText("Option 2 selected");
-                } else if (option.equals("Option 3")) {
-                    textArea.setText("Option 3 selected");
-                }
+                hatSelected = comboBox.getSelectedIndex();
             }
         });
         comboBox.setPreferredSize(new Dimension(100, 20));
@@ -59,21 +62,17 @@ public class MainApplication extends JFrame{
         textArea = new JTextArea(10, 50);
         textArea.setEditable(false);
 
-        JPanel topPanel = new JPanel();
-        JPanel midPanel = new JPanel();
         JPanel bottomPanel = new JPanel();
 
-        topPanel.setBackground(new Color(255, 0, 0));
-        midPanel.setBackground(new Color(51, 153, 255));
         bottomPanel.setBackground(new Color(255, 255, 0));
 
-        topPanel.add(startButton);
-        midPanel.add(comboBox);
-        bottomPanel.add(textArea);
+        bottomPanel.add(startButton);
+        bottomPanel.add(comboBox);
+        bottomPanel.add(textArea, BorderLayout.EAST);
 
-        contentpane.add(topPanel, BorderLayout.NORTH);
-        contentpane.add(midPanel, BorderLayout.CENTER);
+        
         contentpane.add(bottomPanel, BorderLayout.SOUTH);
+        contentpane.add(drawpane, BorderLayout.NORTH);
     }
 
     public static void main(String[] args) {
@@ -105,15 +104,17 @@ public class GameWindow extends JFrame implements KeyListener{
     private boolean GameRunning = true;
     private JTextField scoreText;
     private int score;
+    private String hatFileName;
 
 
-    public GameWindow(){
+    public GameWindow(String hatName){
         setTitle("Stickman Game");
         setBounds(50, 50, frameWidth, frameHeight);
         setResizable(true);
         setVisible(true);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE); 
         currentFrame = this;
+        hatFileName = hatName;
 
         addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e){
@@ -134,8 +135,8 @@ public class GameWindow extends JFrame implements KeyListener{
         String path = "./resources/";
         backgroundImg  = new MyImageIcon(path + "testbg.jpg").resize(frameWidth, frameHeight);
         
-        stickmanLabel = new StickManLabel(currentFrame);
-        stickmanLabel.setBorder(BorderFactory.createLineBorder(Color.RED));
+        stickmanLabel = new StickManLabel(currentFrame, hatFileName);
+        //stickmanLabel.setBorder(BorderFactory.createLineBorder(Color.RED));
         currentLevel = new JTextField("0", 3);		
         currentLevel.setEditable(false);
 
@@ -202,7 +203,10 @@ public class GameWindow extends JFrame implements KeyListener{
                         }
                         if(grassfloorLabel.intersectsSpike(stickmanLabel) ||
                            grassfloorLabelnext.intersectsSpike(stickmanLabel)){
-                            System.out.println("Hit");
+                            if(!stickmanLabel.isInvincible()){
+                                setInvincibleFrame();
+                                deductScore(3);
+                            }
                         }
                     }
                     Thread.currentThread().interrupt();
@@ -243,14 +247,14 @@ public class GameWindow extends JFrame implements KeyListener{
             public void run(){
                 int grassSpeed = 1, enemySpeed = 10, duration = 5000;
 
-                stickmanLabel.setInvincible(true);
+                if(!stickmanLabel.isInvincible()) stickmanLabel.setInvincible(true);
                 grassSpeed = GrassfloorLabel.changeSpeed(grassSpeed);
                 enemySpeed = EnemyLabel.changeSpeed(enemySpeed);
                 try { Thread.sleep(duration); } 
                 catch (InterruptedException e) { e.printStackTrace(); }
                 grassSpeed = GrassfloorLabel.changeSpeed(grassSpeed);
                 enemySpeed = EnemyLabel.changeSpeed(enemySpeed);
-                stickmanLabel.setInvincible(false);
+                setInvincibleFrame();
 
                 Thread.currentThread().interrupt();
             }
@@ -258,9 +262,29 @@ public class GameWindow extends JFrame implements KeyListener{
         speedBoostThread.start();
     }
 
+    public void setInvincibleFrame(){
+        Thread invisibleframeThread = new Thread(){
+            public void run(){
+                int time = 2000;
+                boolean visible = false;
+                stickmanLabel.setInvincible(true);
+                for(int i=0; i<=time; i+=time/10){
+                    stickmanLabel.setVisible(visible);
+                    visible = !visible;
+                    try { Thread.sleep(time/10); } 
+                    catch (InterruptedException e) { e.printStackTrace(); }
+                }
+                stickmanLabel.setVisible(true);
+                stickmanLabel.setInvincible(false);
+                Thread.currentThread().interrupt();
+            }
+        };
+        invisibleframeThread.start();
+    }
+
     public synchronized void deductScore(int minusScore){
-        score -= minusScore;
-        scoreText.setText(Integer.toString(score));
+            score -= minusScore;
+            scoreText.setText(Integer.toString(score));
     }
     
     @Override
@@ -301,7 +325,7 @@ class StickManLabel extends JLabel{
     private int offsetX = 0;
 
     //String imagePath = "src/main/java/Project3/resources/stickman.png"; //Maven
-    String imagePath = "./resources/stickman.png";
+    String imagePath = "./resources/";
     
     //Stickman Properties
     private int width = 348/2, height  = 493/2;
@@ -316,7 +340,7 @@ class StickManLabel extends JLabel{
 
     private boolean invincible = false;
 
-    public StickManLabel(GameWindow pf){
+    public StickManLabel(GameWindow pf, String imageName){
         parentFrame = pf;
         frameWidth = parentFrame.getWidth();
         frameHeight = parentFrame.getHeight();
@@ -325,7 +349,7 @@ class StickManLabel extends JLabel{
         curY = floorHeight;
         
 
-        StickMan = new MyImageIcon(imagePath).resize(width, height);
+        StickMan = new MyImageIcon(imagePath + imageName + ".png").resize(width, height);
         setIcon(StickMan);
         setBounds(curX, curY, width, height);
     }
@@ -430,7 +454,7 @@ class GrassfloorLabel extends JLabel{
                 JLabel sectionLabel = new JLabel(SpikeImage);
                 sectionLabel.setBounds(curX, curY, sectionWidth, height);
                 //sectionLabel.setBounds(curX + sectionWidth/4, curY, sectionWidth/3, height);
-                sectionLabel.setBorder(BorderFactory.createLineBorder(Color.BLUE));
+                //sectionLabel.setBorder(BorderFactory.createLineBorder(Color.BLUE));
                 
                 //this label is for hitbox and cannot be seen on the frame
                 JLabel spikeLabel = new JLabel();
@@ -438,7 +462,7 @@ class GrassfloorLabel extends JLabel{
                 spikeOriginalXPositions.add(spikeLabel.getX());
                 spikeLabels.add(spikeLabel);
                 
-                System.out.println(spikeLabel.getBounds());
+                //System.out.println(spikeLabel.getBounds());
 
                 add(sectionLabel);
             }
@@ -465,7 +489,7 @@ class GrassfloorLabel extends JLabel{
             JLabel spikeLabel = spikeLabels.get(i);
             int originalX = spikeOriginalXPositions.get(i);
             spikeLabel.setLocation(originalX + getX(), getY()); 
-            System.out.println("AAAAAAAA" + spikeLabel.getBounds());
+            //System.out.println("AAAAAAAA" + spikeLabel.getBounds());
         }
         repaint();
     }
@@ -501,9 +525,9 @@ class EnemyLabel extends JLabel{
     private int width = 100, height = 100;
     private int curX = 0, curY = 0;
     private boolean alive;
-    private int pointDeductPerHit = 5;
     private static boolean allAlive;
-    private static int speed = 1000;
+    private static int speed = 100;
+    private int damage = 5;
     private StickManLabel stickManLabel;
 
     public EnemyLabel(GameWindow pf, JLabel dp, StickManLabel stickman){
@@ -513,7 +537,7 @@ class EnemyLabel extends JLabel{
         allAlive = true;
         stickManLabel = stickman;
         
-        curY = (int)(Math.random() * 7777) % ((parentFrame.getHeight() /2));
+        curY = (int)(Math.random() * 7777) % ((parentFrame.getHeight() /2) + 50);
         curX = parentFrame.getWidth() + 100;
         GrassImage = new MyImageIcon(imagePath).resize(width, height);
         //setText("ENERMY");
@@ -528,14 +552,16 @@ class EnemyLabel extends JLabel{
     }
 
     public void move(){
-        curX = curX - 50;
-        if(curX < -50) alive = false;
+        curX = curX - 10;
+        if(curX < (-width-10)) alive = false;
         setLocation(curX, curY);
 
         if(stickManLabel.getBounds().intersects(this.getBounds())){
-            if( !stickManLabel.isInvincible() ){ // Check if the stickman is in invincible state or not
+            if(!stickManLabel.isInvincible()){
                 drawpane.remove(this);
-                parentFrame.deductScore(pointDeductPerHit);
+                parentFrame.setInvincibleFrame();
+                parentFrame.deductScore(damage);
+                alive = false;
             }
         }
 
