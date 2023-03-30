@@ -57,7 +57,7 @@ public class MainApplication extends JFrame{
         });
         comboBox.setPreferredSize(new Dimension(100, 20));
 
-        textArea = new JTextArea(10, 50);
+        textArea = new JTextArea(10, 20);
         textArea.setEditable(false);
 
         JPanel bottomPanel = new JPanel();
@@ -165,6 +165,7 @@ class GameWindow extends JFrame implements KeyListener{
         mediumBtn.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e){
             setSpeed(10, 200);
         }});
+        mediumBtn.setSelected(true);
         JRadioButton hardBtn = new JRadioButton("Fast");
         hardBtn.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e){
             setSpeed(8, 100);
@@ -278,9 +279,7 @@ class GameWindow extends JFrame implements KeyListener{
                     setEnemyThread(stickmanLabel);
                     try { Thread.sleep(3000); } // Time between enemy spawn
                     catch(InterruptedException e) {}
-                    System.out.println("yay yay");
                 }
-                System.out.println("yay yay yay");
                 Thread.currentThread().interrupt();
             }
         };
@@ -290,12 +289,12 @@ class GameWindow extends JFrame implements KeyListener{
     public void setEnemyThread(StickManLabel stickmanLabel){
         Thread enemyThread = new Thread(){
             public void run(){
-                // EnemyLabel enemyLabel = new EnemyLabel(currentFrame, drawpane, stickmanLabel);
-                // drawpane.add(enemyLabel);
-                // while(enemyLabel.isAlive() && EnemyLabel.isAllAlive()){
-                //     enemyLabel.move();
-                // }
-                // Thread.currentThread().interrupt();
+                EnemyLabel enemyLabel = new EnemyLabel(currentFrame, drawpane, stickmanLabel);
+                drawpane.add(enemyLabel);
+                while(enemyLabel.isAlive() && EnemyLabel.isAllAlive()){
+                    enemyLabel.move();
+                }
+                Thread.currentThread().interrupt();
             }
         };
         enemyThread.start();
@@ -304,7 +303,8 @@ class GameWindow extends JFrame implements KeyListener{
     public void setSpeedBoostThread(){ // During the duration, switch the speed of grass floor and enemy, also put the stickman into invincible state
         Thread speedBoostThread = new Thread(){
             public void run(){
-                int grassSpeed = 1, enemySpeed = 10, duration = 3000;
+                int grassSpeed = 1, enemySpeed = 10;
+                int duration = ((int)(Math.random() * 222) % (3000)) + 2000; // Random spawn interval from 2-5 seconds
 
                 if(!stickmanLabel.isInvincible()) stickmanLabel.setInvincible(true);
                 grassSpeed = GrassfloorLabel.changeSpeed(grassSpeed);
@@ -358,19 +358,12 @@ class GameWindow extends JFrame implements KeyListener{
         if(key == 'w' || key == 'W'){
             stickmanLabel.moveUp();
         }
-        if(key == 's' || key == 'S'){
-            stickmanLabel.moveDown();
-        }
     }
     
     @Override
     public void keyReleased(KeyEvent e){}
     @Override
     public void keyTyped(KeyEvent e){}
-
-    // public static void main(String[] args) {
-    //     new GameWindow();
-    // }
 
 }
 
@@ -444,7 +437,7 @@ class StickManLabel extends JLabel{
     public void moveUp(){
         if(getY() == floorHeight){
             jumpSound.playOnce();
-            System.out.println("JUMP");
+            //System.out.println("JUMP");
             new Thread(() -> {
                 int initialY = getY();
                 int initialX = getX();
@@ -470,9 +463,6 @@ class StickManLabel extends JLabel{
         }
     }
 
-    public void moveDown(){
-        setLocation(getX() ,floorHeight);
-    }
 
     public int getFloor(){
         return floorHeight;
@@ -486,10 +476,12 @@ class StickManLabel extends JLabel{
             else{
                 setLocation(getX(), floorHeight);
             }
+            validate();
             repaint();
             try { Thread.sleep(gravity); } 
             catch (InterruptedException e) { e.printStackTrace(); } 
         }
+        validate();
         repaint();
     }
 
@@ -583,6 +575,7 @@ class GrassfloorLabel extends JLabel{
         for(JLabel spikeLabel : spikeLabels){
             spikeLabel.setLocation(spikeLabel.getX() - 10, getY());
         }
+        validate();
         repaint();
         try { Thread.sleep(stageSpeed); } 
         catch (InterruptedException e) { e.printStackTrace(); } 
@@ -598,6 +591,7 @@ class GrassfloorLabel extends JLabel{
             spikeLabel.setLocation(originalX + getX(), getY()); 
             //System.out.println("AAAAAAAA" + spikeLabel.getBounds());
         }
+        validate();
         repaint();
     }
 
@@ -657,7 +651,9 @@ class EnemyLabel extends JLabel{
         addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e){
                 drawpane.remove((EnemyLabel)e.getSource());
-                Thread.currentThread().interrupt();
+                alive = false;
+                revalidate();
+                repaint();
             }
         });
 
@@ -675,11 +671,10 @@ class EnemyLabel extends JLabel{
                 parentFrame.setInvincibleFrame();
                 parentFrame.deductScore(damage);
                 alive = false;
-                validate();
-                repaint();
+                System.out.println("HIT ENEMY");
             }
         }
-
+        validate();
         repaint();
         try { Thread.sleep(speed); } 
         catch (InterruptedException e) { e.printStackTrace(); }
