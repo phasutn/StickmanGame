@@ -115,7 +115,13 @@ class GameWindow extends JFrame implements KeyListener{
         currentFrame = this;
         parentFrame = pf;
         hatFileName = hatName;
-        
+
+        addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent e){
+                themeSound.stop();
+            }
+        });
+
         contentpane = (JPanel)getContentPane();
         contentpane.setLayout(new BorderLayout());
         addKeyListener(this);
