@@ -333,15 +333,15 @@ class StickManLabel extends JLabel{
         setBounds(curX, curY, width, height);
 
         // Add hat image
-        this.hatImage = new MyImageIcon(hatPath).resize(width/2, 100);
+        this.hatImage = new MyImageIcon(hatPath).resize(200/2, 200/2);
         this.hatLabel = new JLabel(hatImage);
-        hatLabel.setBounds(curX, curY, width/2, 100);
+        hatLabel.setBounds(curX, curY, 200/2, 200/2);
         hatLabel.setBorder(BorderFactory.createLineBorder(Color.YELLOW));
         parentFrame.add(hatLabel, 0);
     }
 
     public void updateHatLocation(){
-        hatLabel.setLocation(getX() + width/4, getY() - 40);
+        hatLabel.setLocation(getX() + 38, getY() - 30);
     }
 
     public void moveLeft(){
