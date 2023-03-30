@@ -193,6 +193,7 @@ class GameWindow extends JFrame implements KeyListener{
             public void actionPerformed(ActionEvent e){
                 if(enemyCount >= 5){
                     speedButton.setText("Boost Not Ready");
+                    enemyCount = 0;
                     setSpeedBoostThread();
                 }
                 requestFocus();
@@ -300,7 +301,7 @@ class GameWindow extends JFrame implements KeyListener{
                             if(!stickmanLabel.isInvincible()){
                                 hurtSound.playOnce();
                                 setInvincibleFrame();
-                                deductScore(500);
+                                deductScore(300);
                             }
                         }
                     }
@@ -669,8 +670,10 @@ class EnemyLabel extends JLabel{
     private boolean alive;
     private static boolean allAlive;
     private static int speed = 100;
-    private int damage = 750;
+    private int damage = 500;
     private StickManLabel stickManLabel;
+    private MySoundEffect hurtSound;
+    private String hurtSoundPath = "./resources/sounds/hurtSound.wav";
 
     public EnemyLabel(GameWindow pf, JLabel dp, StickManLabel stickman){
         parentFrame = pf;
@@ -678,13 +681,14 @@ class EnemyLabel extends JLabel{
         alive = true;
         allAlive = true;
         stickManLabel = stickman;
-        
+
+        hurtSound = new MySoundEffect(hurtSoundPath);
         curY = (int)(Math.random() * 7777) % ((parentFrame.getHeight() /2) + 50);
         curX = parentFrame.getWidth() + 100;
         GrassImage = new MyImageIcon(imagePath).resize(width, height);
-        //setText("ENERMY");
         setIcon(GrassImage);
         setBounds(curX, curY, width, height);
+
         addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e){
                 parentFrame.plusEnemy();
@@ -705,6 +709,7 @@ class EnemyLabel extends JLabel{
 
         if(stickManLabel.getBounds().intersects(this.getBounds())){
             if(!stickManLabel.isInvincible()){
+                hurtSound.playOnce();
                 drawpane.remove(this);
                 parentFrame.setInvincibleFrame();
                 parentFrame.deductScore(damage);
