@@ -471,10 +471,10 @@ class StickManLabel extends JLabel{
         }
     }
 
-    public void moveDown(){
-        setLocation(getX() ,floorHeight);
-    }
+<<<<<<<<< Temporary merge branch 1
 
+=========
+>>>>>>>>> Temporary merge branch 2
     public int getFloor(){
         return floorHeight;
     }
