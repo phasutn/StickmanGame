@@ -202,7 +202,7 @@ public class GameWindow extends JFrame implements KeyListener{
                         }
                         if(grassfloorLabel.intersectsSpike(stickmanLabel) ||
                            grassfloorLabelnext.intersectsSpike(stickmanLabel)){
-                            System.out.println("Hit");
+                            //System.out.println("Hit");
                         }
                     }
                     Thread.currentThread().interrupt();
@@ -309,23 +309,23 @@ class StickManLabel extends JLabel{
     private int speed = 20;
     private int speedY = 50;
     private int jumpHeight = 300;
+    private int jumpDistance = 100;
     
     //Environment Properties
     private int floorHeight;
-    private int gravity = 20;
+    private int gravity = 10;
 
     private boolean invincible = false;
 
     public StickManLabel(GameWindow pf){
-        parentFrame = pf;
-        frameWidth = parentFrame.getWidth();
-        frameHeight = parentFrame.getHeight();
-        floorHeight = frameHeight / 2 - 50;
-        curX = frameWidth / 20;
-        curY = floorHeight;
-        
+        this.parentFrame = pf;
+        this.frameWidth = parentFrame.getWidth();
+        this.frameHeight = parentFrame.getHeight();
+        this.floorHeight = frameHeight / 2 - 50;
+        this.curX = frameWidth / 20;
+        this.curY = floorHeight;
 
-        StickMan = new MyImageIcon(imagePath).resize(width, height);
+        this.StickMan = new MyImageIcon(imagePath).resize(width, height);
         setIcon(StickMan);
         setBounds(curX, curY, width, height);
     }
@@ -341,18 +341,35 @@ class StickManLabel extends JLabel{
     }
 
     public void moveUp(){
-        if(getY() == floorHeight) setLocation( getX(), getY() - jumpHeight);
+        if(getY() == floorHeight){
+            System.out.println("JUMP");
+            new Thread(() -> {
+                int initialY = getY();
+                int initialX = getX();
+                int targetY = floorHeight - jumpHeight;
+                int targetX = initialX + jumpDistance;
+                int currentY = initialY;
+                int currentX = initialX;
+                double t = 0;
+                while (t <= 1.0) {
+                    t += 0.1;
+                    currentX = (int) (initialX + (targetX - initialX) * t);
+                    currentY = (int) (initialY + (targetY - initialY) * t);
+                    setLocation(currentX, currentY);
+                    try {
+                        Thread.sleep(20);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                currentY = targetY;
+                setLocation(getX(), currentY);
+            }).start();
+        }
     }
 
     public void moveDown(){
-        if(getY() != floorHeight){
-            if(getY() - speedY < floorHeight){
-                setLocation(getX(), getY() + speedY);
-            }
-            else{
-                setLocation(getX(), floorHeight);
-            }
-        }
+        setLocation(getX() ,floorHeight);
     }
 
     public int getFloor(){
@@ -368,7 +385,7 @@ class StickManLabel extends JLabel{
                 setLocation(getX(), floorHeight);
             }
             repaint();
-            try { Thread.sleep(50); } 
+            try { Thread.sleep(gravity); } 
             catch (InterruptedException e) { e.printStackTrace(); } 
         }
         repaint();
@@ -465,7 +482,6 @@ class GrassfloorLabel extends JLabel{
             JLabel spikeLabel = spikeLabels.get(i);
             int originalX = spikeOriginalXPositions.get(i);
             spikeLabel.setLocation(originalX + getX(), getY()); 
-            System.out.println("AAAAAAAA" + spikeLabel.getBounds());
         }
         repaint();
     }
