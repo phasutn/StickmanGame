@@ -192,6 +192,7 @@ class GameWindow extends JFrame implements KeyListener{
         speedButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e){
                 if(enemyCount >= 5){
+                    enemyCount = 0;
                     speedButton.setText("Boost Not Ready");
                     setSpeedBoostThread();
                 }
